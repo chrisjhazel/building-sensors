@@ -3,6 +3,8 @@
         {
             "name": "Mac",
             "includePath": [
+                "/Users/chrishazel/Library/Arduino15/packages/arduino/tools/**",
+                "/Users/chrishazel/Library/Arduino15/packages/arduino/hardware/mbed/1.1.4/**",
                 "${workspaceFolder}/**"
             ],
             "defines": [],
@@ -12,7 +14,10 @@
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
+            "intelliSenseMode": "clang-x64",
+            "forcedInclude": [
+                "/Users/chrishazel/Library/Arduino15/packages/arduino/hardware/mbed/1.1.4/cores/arduino/Arduino.h"
+            ]
         }
     ],
     "version": 4
