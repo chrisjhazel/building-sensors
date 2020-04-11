@@ -1,0 +1,7 @@
+# Git Ignore for Building Sensor Project
+
+# MAC OS
+.DS_store
+
+# John Ignores
+log.txt
