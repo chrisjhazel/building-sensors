@@ -1,5 +1,6 @@
 {
     "board": "arduino:mbed:nano33ble",
-    "sketch": "working_files/TestSensors2.ino",
-    "port": "/dev/tty.usbmodem14201"
+    "sketch": "working_files/TestSensors2/TestSensors2.ino",
+    "port": "/dev/tty.usbmodem14101",
+    "programmer": "AVR ISP"
 }
