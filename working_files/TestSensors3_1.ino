@@ -29,8 +29,8 @@ void setup() {
     //Initialize the LED light to confirm that the sensor is collecting data
     pinMode(LED_BUILTIN, OUTPUT);
 
-//PRINT THE HEADER
-    Serial.println("Temperature, Humidity, Pressure, Light");
+    //PRINT THE HEADER
+    //Serial.println("Temperature, Humidity, Pressure, Light");
 
 }
 
@@ -53,12 +53,18 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW);
 
     Serial.print(temperature);
-    Serial.print(", ");
+    Serial.println(":TEMPERATURE-F");
+    
     Serial.print(humidity);
-    Serial.print(", ");
+    Serial.println(":HUMIDITY-%:");
+    
     Serial.print(pressure);
-    Serial.print(", ");
-    Serial.println(light);
+    Serial.println(":PRESSURE-PSI:");
+    
+    Serial.print(light);
+    Serial.println(":LIGHT-LUX:");
+    
+    Serial.println();
 
 
 /*
