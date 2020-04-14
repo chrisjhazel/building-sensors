@@ -56,13 +56,13 @@ void loop() {
     Serial.println(":TEMPERATURE-F");
     
     Serial.print(humidity);
-    Serial.println(":HUMIDITY-%:");
+    Serial.println(":HUMIDITY-%");
     
     Serial.print(pressure);
-    Serial.println(":PRESSURE-PSI:");
+    Serial.println(":PRESSURE-PSI");
     
     Serial.print(light);
-    Serial.println(":LIGHT-LUX:");
+    Serial.println(":LIGHT-LUX");
     
     Serial.println();
 
