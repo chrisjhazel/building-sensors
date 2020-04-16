@@ -12,15 +12,17 @@ count = 0
 rowList = [time.time()] #create a list to hold each item of data
 
 #Read the first data input for the value keys
-keyMatrix = [["Data Type", "Value Type"], ["TIME", "S"]]
+keyMatrix = [["Data Type", "Value Type"], ["TIME", "ticks"]]
 recordKeys = True
 
 while True: #overall while loop to continuously read the data
     
+    """
     if count == 20:
         break #Just a test break to test the script
 
     count += 1
+    """
 
     ser_bytes = ser.readline() #Read the serial input data per line
 
