@@ -1,5 +1,0 @@
-{
-    "board": "arduino:mbed:nano33ble",
-    "sketch": "working_files/TestSensors3_1.ino",
-    "port": "/dev/tty.usbmodem14101"
-}
