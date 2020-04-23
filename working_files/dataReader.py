@@ -24,10 +24,15 @@ def keyReader(keyFile):
     return dataType, valueType
 
 
-dataType, valueType = keyReader(keyFile)
+def timeReader(csvFile, timeInd):
+    
+    with open(csvFile, newline = '') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            realTime = time.asctime(time.localtime(float(row[timeInd])))
+            print(realTime)
 
-with open(csvFile, newline = '') as f:
-    reader = csv.reader(f)
-    for row in reader:
-        timeTest = float(row[0])
-        print(time.asctime(time.localtime(timeTest)))
+
+dataType, valueType = keyReader(keyFile)
+timeInd = dataType.index("TIME")
+timeReader(csvFile, timeInd)
