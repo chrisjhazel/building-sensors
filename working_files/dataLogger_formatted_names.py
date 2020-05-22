@@ -43,12 +43,6 @@ while True: #overall while loop to continuously read the data
                 lineCount += 1
 
     else:
-        with open(csvFile, "a") as f: #Write the data to the CSV file
-            writer = csv.writer(f, delimiter=",")
-            writer.writerow(rowList)
-                
-        rowList = [time.time()] #Start new liast after writing to CSV
-
         if recordKeys == True:
             print(keyMatrix)
             with open(keyFile, "w") as f: #Write the key data to a new file
@@ -56,3 +50,11 @@ while True: #overall while loop to continuously read the data
                     writer = csv.writer(f, delimiter=",")
                     writer.writerow(row)
             recordKeys = False
+
+        with open(csvFile, "a") as f: #Write the data to the CSV file
+            writer = csv.writer(f, delimiter=",")
+            writer.writerow(rowList)
+                
+        rowList = [time.time()] #Start new list after writing to CSV
+
+    time.sleep(2) #Sleep for 2 seconds between readings

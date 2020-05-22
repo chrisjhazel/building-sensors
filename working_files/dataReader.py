@@ -20,12 +20,10 @@ def keyReader(keyFile):
                 valueType.append(row[1])
             else:
                 continue
-
     return dataType, valueType
 
 
 def timeReader(csvFile, timeInd):
-    
     with open(csvFile, newline = '') as f:
         reader = csv.reader(f)
         for row in reader:
