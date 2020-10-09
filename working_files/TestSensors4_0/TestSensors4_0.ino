@@ -11,10 +11,10 @@
 //Set up the bluetooth characteristics
 BLEService nanoService("19b10010-e8f2-537e-4f6c-d104768a1214");
 BLEFloatCharacteristic tempCharacteristic("19b10011-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEBroadcast);
-BLEFloatCharacteristic humidCharacteristic("19b10012-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
-BLEFloatCharacteristic pressureCharacteristic("19b10013-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
-BLEIntCharacteristic lightCharacteristic("19b10014-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
-BLEFloatCharacteristic soundCharacteristic("19b10015-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify);
+BLEFloatCharacteristic humidCharacteristic("19b10012-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEBroadcast);
+BLEFloatCharacteristic pressureCharacteristic("19b10013-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEBroadcast);
+BLEIntCharacteristic lightCharacteristic("19b10014-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEBroadcast);
+BLEFloatCharacteristic soundCharacteristic("19b10015-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEBroadcast);
 
 // buffer to read samples into, each sample is 16-bits
 short sampleBuffer[256];
@@ -69,7 +69,6 @@ void setup() {
   BLE.setLocalName("Arduino:Sandie");
   BLE.setDeviceName("Arduino:Sandie");
   BLE.setAdvertisedService(nanoService);
-  //BLE.setConnectionInterval(0x06, 0x06);
   nanoService.addCharacteristic(tempCharacteristic);
   nanoService.addCharacteristic(humidCharacteristic);
   nanoService.addCharacteristic(pressureCharacteristic);
@@ -91,6 +90,10 @@ void setup() {
   BLE.setConnectable(true);
 
   tempCharacteristic.broadcast();
+  humidCharacteristic.broadcast();
+  pressureCharacteristic.broadcast();
+  lightCharacteristic.broadcast();
+  soundCharacteristic.broadcast();
 
 }
 
@@ -98,15 +101,16 @@ void loop() {
 
   //Connect BLE
   BLEDevice central = BLE.central();
+  /*
+  if (!central) {
+    BLE.advertise();
+    Serial.println("Not Connected");
+  }*/
   if (central) {
     Serial.print("Connected to central: ");
     Serial.println(central.address());
-    //BLE.stopAdvertise();
     Serial.print("RSSI = ");
     int rssiVal = BLE.rssi();
-    while (rssiVal = 0) {
-      delay(1);
-    }
     Serial.println(rssiVal);
 
     while (central.connected()) {
@@ -116,9 +120,10 @@ void loop() {
       //Blink LED light to confirm data collection
       digitalWrite(LED_BUILTIN, HIGH);
 
-      float temperature = HTS.readTemperature(FAHRENHEIT);
+      float temperatureAdj = HTS.readTemperature();
+      float temperature = (temperatureAdj - (6.5));//*(9/5)) + 32;
       float humidity = HTS.readHumidity();
-      float pressure = BARO.readPressure(PSI);
+      float pressure = BARO.readPressure();
       int r, g, b, light;
 
       //initialize sound variables

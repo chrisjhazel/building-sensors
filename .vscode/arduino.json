@@ -1,5 +1,6 @@
 {
-    "board": "arduino:mbed:nano33ble",
+    "board": "arduino:avr:nano",
     "port": "/dev/tty.usbmodem14101",
-    "sketch": "working_files/TestSensors4_0.ino"
+    "sketch": "working_files/TestSensors4_0/TestSensors4_0.ino",
+    "configuration": "cpu=atmega328"
 }
