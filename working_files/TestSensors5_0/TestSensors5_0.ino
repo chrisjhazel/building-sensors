@@ -13,8 +13,8 @@ BLEService sensorService("181A");
 BLEIntCharacteristic tempCharacteristic("2A6E", BLERead | BLENotify | BLEBroadcast);
 BLEUnsignedIntCharacteristic humidCharacteristic("2A6F", BLERead | BLENotify | BLEBroadcast);
 BLEUnsignedIntCharacteristic pressureCharacteristic("2A6D", BLERead | BLENotify | BLEBroadcast);
-BLEIntCharacteristic lightCharacteristic("2A6R", BLERead | BLENotify | BLEBroadcast);
-BLEIntCharacteristic soundCharacteristic("2A6T", BLERead | BLENotify | BLEBroadcast);
+BLEIntCharacteristic lightCharacteristic("adb5976d-f756-43ca-8a32-1a6cdf97601f", BLERead | BLENotify | BLEBroadcast);
+BLEIntCharacteristic soundCharacteristic("fbfebdd5-f415-43c9-b5d5-c3094f2c86be", BLERead | BLENotify | BLEBroadcast);
 BLEIntCharacteristic updateFreq("2A6B", BLERead | BLENotify | BLEBroadcast);
 
 // Set update time and calibration

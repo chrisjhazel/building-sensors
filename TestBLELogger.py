@@ -185,7 +185,8 @@ def read_updateTime(service):
 
 
 def read_light(service):
-    light_char = service.getCharacteristics("2A6R")[0]
+    light_char = service.getCharacteristics(
+        "adb5976d-f756-43ca-8a32-1a6cdf97601f")[0]
     light = light_char.read()
     light = byte_array_to_int(light)
     print(f"Light: {light} Units")
@@ -194,7 +195,8 @@ def read_light(service):
 
 
 def read_sound(service):
-    sound_char = service.getCharacteristics("2A6T")[0]
+    sound_char = service.getCharacteristics(
+        "fbfebdd5-f415-43c9-b5d5-c3094f2c86be")[0]
     sound = sound_char.read()
     sound = byte_array_to_int(sound)
     print(f"Sound: {sound} Units")
