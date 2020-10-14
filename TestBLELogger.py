@@ -16,8 +16,6 @@ import csv
 projectName = "testData"
 sensorName = "testSensor"
 
-addKeys(projectName)
-
 def main(projectName, sensorName):
     # get args
     args = get_args()
@@ -37,7 +35,7 @@ def main(projectName, sensorName):
     """
     Temporary lines for file creation on local disk
     """
-    today = datetime.datetime.today
+    today = datetime.datetime.now()
     csvFile = ("{}_{}__{}{}{}.csv".format(projectName, sensorName, today.year, today.month, today.day))
 
     
@@ -212,4 +210,5 @@ def get_args():
 
 
 if __name__ == "__main__":
+    addKeys(projectName)
     main(projectName, sensorName)
