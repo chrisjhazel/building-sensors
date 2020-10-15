@@ -29,30 +29,22 @@ short sampleBuffer[256];
 volatile int samplesRead;
 
 void setup() {
-  Serial.begin(9600);
+  //Serial.begin(9600);
   //while (!Serial);
-  //Delay the sensor startups for a short period of time for when not connected to Serial Port
-  delay(10000); //delay 10 seconds, probably longer than needed
 
-    //Blink light to confirm ready
-    //Initialize the LED light to confirm that the sensor is collecting data
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
-    digitalWrite(LED_BUILTIN, LOW);
 
   if (!HTS.begin()) {
-    Serial.println("Failed to initialize humidity temperature sensor!");
+    //Serial.println("Failed to initialize humidity temperature sensor!");
     while (1);
   }
 
   if (!BARO.begin()) {
-    Serial.println("Failed to initialize pressure sensor!");
+    //Serial.println("Failed to initialize pressure sensor!");
     while (1);
   }
 
   if (!APDS.begin()) {
-    Serial.println("Failed to initialize ligth sensor!");
+    //Serial.println("Failed to initialize ligth sensor!");
     while (1);
   }
 
@@ -67,16 +59,17 @@ void setup() {
   // - a 16 kHz sample rate
   if (!PDM.begin(1, 16000))
   {
-    Serial.println("Failed to start PDM!");
+    //Serial.println("Failed to start PDM!");
     while (1);
   }
 
   if (!BLE.begin()) {
-    Serial.println("Could not start BLE!");
+    //Serial.println("Could not start BLE!");
     while (1);
   }
 
-
+  //Initialize the LED light to confirm that the sensor is collecting data
+  pinMode(LED_BUILTIN, OUTPUT);
 
   //Set up BLE
   BLE.setLocalName("Arduino:Sandie");
@@ -91,12 +84,12 @@ void setup() {
 
   BLE.addService(sensorService);
   BLE.advertise();
-  Serial.println("BLE Peripheral");
+  //Serial.println("BLE Peripheral");
 
   String ardAddress = BLE.address();
   
-  Serial.print("Arduino Address is: ");
-  Serial.println(ardAddress);
+  //Serial.print("Arduino Address is: ");
+  //Serial.println(ardAddress);
 
   //Set bluetooth connection
   BLE.setAdvertisingInterval(10000);
@@ -111,9 +104,9 @@ void setup() {
   updateFreq.broadcast();
 
   updateFreq.writeValue(UPDATE_FREQUENCY);
-  Serial.print("The update frequency is: ");
-  Serial.print(UPDATE_FREQUENCY/1000);
-  Serial.println(" seconds");
+  //Serial.print("The update frequency is: ");
+  //Serial.print(UPDATE_FREQUENCY/1000);
+  //Serial.println(" seconds");
 
 }
 
@@ -127,11 +120,11 @@ void loop() {
     Serial.println("Not Connected");
   }*/
   if (central) {
-    Serial.print("Connected to central: ");
-    Serial.println(central.address());
-    Serial.print("RSSI = ");
+    //Serial.print("Connected to central: ");
+    //Serial.println(central.address());
+    //Serial.print("RSSI = ");
     int rssiVal = BLE.rssi();
-    Serial.println(rssiVal);
+    //Serial.println(rssiVal);
 
     digitalWrite(LED_BUILTIN, HIGH); //Turn on the LED Light to show connection
 
@@ -145,8 +138,8 @@ void loop() {
 
     //Blink LED light to confirm data collection
     digitalWrite(LED_BUILTIN, LOW); //Turn off the LED to show disconnection
-    Serial.print("Disconnected from Central: ");
-    Serial.println(central.address());
+    //Serial.print("Disconnected from Central: ");
+    //Serial.println(central.address());
 
     }
 }
@@ -228,24 +221,24 @@ void updateReadings() {
 
     tempCharacteristic.writeValue(temperature);
     int temperatureAdj = adjustTemperature(temperature);
-    Serial.print(temperatureAdj);
-    Serial.println(":TEMPERATURE-F");
+    //Serial.print(temperatureAdj);
+    //Serial.println(":TEMPERATURE-F");
 
     humidCharacteristic.writeValue(humidity);
-    Serial.print(humidity/100);
-    Serial.println(":HUMIDITY-%");
+    //Serial.print(humidity/100);
+    //Serial.println(":HUMIDITY-%");
 
     pressureCharacteristic.writeValue(pressure);
-    Serial.print(pressure/10000);
-    Serial.println(":PRESSURE-Pa");
+    //Serial.print(pressure/10000);
+    //Serial.println(":PRESSURE-Pa");
 
     lightCharacteristic.writeValue(light);
-    Serial.print(light);
-    Serial.println(":LIGHT");
+    //Serial.print(light);
+    //Serial.println(":LIGHT");
 
     soundCharacteristic.writeValue(sound);
-    Serial.print(sound);
-    Serial.println(":SOUND");
+    //Serial.print(sound);
+    //Serial.println(":SOUND");
 
-    Serial.println();
+    //Serial.println();
 }
