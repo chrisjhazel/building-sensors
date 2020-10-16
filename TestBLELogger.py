@@ -13,10 +13,12 @@ import csv
 # Requirements: python3 -m pip install –user -r requirements.txt
 # To Run: python3 ./TestBLELogger.py ED:D6:F1:0A:F1:19 <- MAC address – change me!
 
+"""
 projectName = "testData"
 sensorName = "testSensor"
+"""
 
-def main(projectName, sensorName):
+def main():
     # get args
     args = get_args()
 
@@ -31,6 +33,12 @@ def main(projectName, sensorName):
     _ = environmental_sensing_service.getCharacteristics()
 
     updateTime = read_updateTime(environmental_sensing_service)
+
+    #Get names
+    projectName = args.project_name
+    sensorName = args.sensor_name
+
+    addKeys(projectName)
 
     """
     Temporary lines for file creation on local disk
@@ -205,10 +213,12 @@ def read_sound(service):
 def get_args():
     arg_parser = ArgumentParser(description="BLE IoT Sensor Demo")
     arg_parser.add_argument('mac_address', help="MAC address of device to connect")
+    arg_parser.add_argument('project_name', help="The name of the project")
+    arg_parser.add_argument('sensor_name', help="The name of the individual sensor")
     args = arg_parser.parse_args()
     return args
 
 
 if __name__ == "__main__":
-    addKeys(projectName)
-    main(projectName, sensorName)
+    
+    main()
