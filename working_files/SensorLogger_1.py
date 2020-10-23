@@ -29,28 +29,60 @@ def main():
     # get args
     args = get_args()
 
-    # Connect the sensor device to the hub
-    print("Connecting…")
-    nano_sense = btle.Peripheral(args.mac_address)
+    #Set connection count to test connection to sensor device explicit number of times
+    connectCount = 0
 
-    # Discover the service available on the device
-    print("Discovering Services…")
-    _ = nano_sense.services
-    environmental_sensing_service = nano_sense.getServiceByUUID("181A")
+    #Attempt to connect to BLE device and run the logger script
+    while connectCount < 5:
+        try:
+            # Connect the sensor device to the hub
+            print("Connecting…")
+            nano_sense = btle.Peripheral(args.mac_address)
 
-    # Discover the characteristics available on the device
-    print("Discovering Characteristics…")
-    _ = environmental_sensing_service.getCharacteristics()
+            # Discover the service available on the device
+            print("Discovering Services…")
+            _ = nano_sense.services
+            environmental_sensing_service = nano_sense.getServiceByUUID("181A")
 
-    # Get the update frequency from the sensor and use as the update time on the hub
-    updateTime = read_updateTime(environmental_sensing_service)
+            # Discover the characteristics available on the device
+            print("Discovering Characteristics…")
+            _ = environmental_sensing_service.getCharacteristics()
 
-    #Get names for the project and the sensor
-    projectName = args.project_name
-    sensorName = args.sensor_name
+            # Get the update frequency from the sensor and use as the update time on the hub
+            updateTime = read_updateTime(environmental_sensing_service)
 
-    # Add key values as a csv file to later read
-    columnKeys = addKeys(projectName)
+            #Get names for the project and the sensor
+            projectName = args.project_name
+            sensorName = args.sensor_name
+
+            # Add key values as a csv file to later read
+            columnKeys = addKeys(projectName)
+
+            #If successful connection, reset connect counter to 0
+            connectCount = 0
+
+            # Create a new CSV file on the local drive to record the data
+            # Add the date to the file for some organization
+            today = datetime.datetime.now()
+            csvFile = ("{}_{}__{}{}{}".format(projectName, sensorName, today.year, today.month, today.day))
+            sensorTableName = ("{}__{}{}{}".format(sensorName, today.year, today.month, today.day))
+
+
+            #Run the data logging script
+            getSensorData(environmental_sensing_service, csvFile, updateTime)
+        
+        except:
+            #If not able to connect to the BLE device
+            print("*****************************")
+            print("COULD NOT CONNECT TO DEVICE!")
+            print("----------RETRYING----------")
+            print("*****************************")
+
+            #Add to the connect counter and delay next attempt by 10 seconds
+            connectCount += 1
+            time.sleep(10)
+
+            
 
     """
     Temporary lines for file creation on local disk
@@ -64,12 +96,10 @@ def main():
     write new row of data to the current sensor table
 
     """
-    # Create a new CSV file on the local drive to record the data
-    # Add the date to the file for some organization
-    today = datetime.datetime.now()
-    csvFile = ("{}_{}__{}{}{}.csv".format(projectName, sensorName, today.year, today.month, today.day))
 
     
+def getSensorData(environmental_sensing_service, csvFile, updateTime):
+
     while True:
         """
         Create test to determine if the csv file has been pushed to the cloud DB
@@ -79,11 +109,12 @@ def main():
             today = datetime.datetime.today
             csvFile = ("{}_{}__{}{}{}.csv".format(projectName, sensorName, today.year, today.month, today.day))
         """
-        
+
         # Create a datarow to collect information from each sensor characteristic
         print("\n")
         # Start the data row with the python time
-        dataRow = [time.time()] # May not need this depending on how information is being sent to the cloud db
+        # May not need this depending on how information is being sent to the cloud db
+        dataRow = [time.time()]
         dataRow.append(read_temperature(environmental_sensing_service))
         dataRow.append(read_humidity(environmental_sensing_service))
         dataRow.append(read_pressure(environmental_sensing_service))
@@ -95,13 +126,7 @@ def main():
             writer = csv.writer(f, delimiter=",")
             writer.writerow(dataRow)
 
-        time.sleep(updateTime) # transmission frequency set on IoT device
-    
-    print("*********************************")
-    print("DISCONNECTED FROM SENSOR DEVICE!")
-    print("*********************************")
-
-    
+        time.sleep(updateTime)  # transmission frequency set on IoT device
 
 def addKeys(projectName):
     # Add the keys to a CSV file for reading later
