@@ -23,6 +23,8 @@ from bluepy import btle  # linux only (no mac)
 from colr import color as colr
 import csv
 import dBStore
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
 def main():
@@ -33,7 +35,7 @@ def main():
     connectCount = 0
 
     #Attempt to connect to BLE device and run the logger script
-    while connectCount < 5:
+    while connectCount < 2:
         try:
             # Connect the sensor device to the hub
             print("Connecting…")
@@ -61,15 +63,13 @@ def main():
             #If successful connection, reset connect counter to 0
             connectCount = 0
 
-            # Create a new CSV file on the local drive to record the data
-            # Add the date to the file for some organization
-            today = datetime.datetime.now()
-            csvFile = ("{}_{}__{}{}{}".format(projectName, sensorName, today.year, today.month, today.day))
-            sensorTableName = ("{}__{}{}{}".format(sensorName, today.year, today.month, today.day))
+            # Test if the project database exists, if not, create new one
+            dbExists = dBStore.testDBExists(projectName)
 
+            if dbExists == True:
 
-            #Run the data logging script
-            getSensorData(environmental_sensing_service, csvFile, updateTime)
+                #Run the data logging script
+                getSensorData(environmental_sensing_service, projectName, sensorName, updateTime, columnKeys)
         
         except:
             #If not able to connect to the BLE device
@@ -98,40 +98,67 @@ def main():
     """
 
     
-def getSensorData(environmental_sensing_service, csvFile, updateTime):
+def getSensorData(environmental_sensing_service, projectName, sensorName, updateTime, columnKeys):
+
+    today = None
+    tableExists = False
 
     while True:
-        """
-        Create test to determine if the csv file has been pushed to the cloud DB
-        If file pushed, create a new results file with the date in title
 
-        if newFile == True:
-            today = datetime.datetime.today
-            csvFile = ("{}_{}__{}{}{}.csv".format(projectName, sensorName, today.year, today.month, today.day))
-        """
+        # Create a new CSV file on the local drive to record the data
+        # Add the date to the file for some organization
+        todayNow = datetime.datetime.now()
 
-        # Create a datarow to collect information from each sensor characteristic
-        print("\n")
-        # Start the data row with the python time
-        # May not need this depending on how information is being sent to the cloud db
-        dataRow = [time.time()]
-        dataRow.append(read_temperature(environmental_sensing_service))
-        dataRow.append(read_humidity(environmental_sensing_service))
-        dataRow.append(read_pressure(environmental_sensing_service))
-        dataRow.append(read_light(environmental_sensing_service))
-        dataRow.append(read_sound(environmental_sensing_service))
+        if todayNow != today:
+            today = todayNow
+            csvFile = ("{}_{}__{}{}{}".format(projectName, sensorName, today.year, today.month, today.day))
+            sensorTableName = ("{}__{}{}{}".format(sensorName, today.year, today.month, today.day))
 
-        # Write the data row to a local CSV file
-        with open(csvFile, "a") as f:
-            writer = csv.writer(f, delimiter=",")
-            writer.writerow(dataRow)
+            #Make a new table for today
+            tableExists = dBStore.testTableExists(projectName, sensorTableName, columnKeys)
 
-        time.sleep(updateTime)  # transmission frequency set on IoT device
+        if tableExists == True:
+
+            # Create a datarow to collect information from each sensor characteristic
+            print("\n")
+            # Start the data row with the python time
+            # May not need this depending on how information is being sent to the cloud db
+            #dataRow = [time.time()] Use this to start the list with the python time
+            dataRow = []
+            dataRow.append(read_temperature(environmental_sensing_service))
+            dataRow.append(read_humidity(environmental_sensing_service))
+            dataRow.append(read_pressure(environmental_sensing_service))
+            dataRow.append(read_light(environmental_sensing_service))
+            dataRow.append(read_sound(environmental_sensing_service))
+
+            """
+            # Write the data row to a local CSV file
+            with open(csvFile, "a") as f:
+                writer = csv.writer(f, delimiter=",")
+                writer.writerow(dataRow)
+                """
+            
+            dataInsertSuccess = dBStore.insertDataRow(dataRow, projectName, sensorTableName, columnKeys)
+            print(dataInsertSuccess)
+
+            time.sleep(updateTime)  # transmission frequency set on IoT device
+        else:
+            break
+
 
 def addKeys(projectName):
     # Add the keys to a CSV file for reading later
+    """
+    Keys with the time component, not used in SQL
     keys = [["TIME", "TICKS"],
             ["TEMPERATURE", "°F"],
+            ["HUMIDITY", "%"], 
+            ["PRESSURE", "kPa"],
+            ["LIGHT", "UNITS"],
+            ["SOUND", "UNITS"]]
+            """
+    
+    keys = [["TEMPERATURE", "°F"],
             ["HUMIDITY", "%"], 
             ["PRESSURE", "kPa"],
             ["LIGHT", "UNITS"],
