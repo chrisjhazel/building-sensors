@@ -59,6 +59,7 @@ def createNewProject(projectName):
 
         #Create the new project database
         cursor.execute(sqlCreateDatabase)
+        con.commit()
 
         return True
     
