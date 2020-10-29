@@ -54,8 +54,9 @@ def main():
             updateTime = read_updateTime(environmental_sensing_service)
 
             #Get names for the project and the sensor
-            projectName = args.project_name
-            sensorName = args.sensor_name
+            # The SQL DB and Tables are lower case, so inputs must be made all lowercase
+            projectName = args.project_name.lower()
+            sensorName = args.sensor_name.lower()
 
             # Add key values as a csv file to later read
             columnKeys = addKeys(projectName)
