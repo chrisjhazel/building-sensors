@@ -19,7 +19,7 @@ BLEIntCharacteristic soundCharacteristic("fbfebdd5-f415-43c9-b5d5-c3094f2c86be",
 BLEIntCharacteristic updateFreq("2A6B", BLERead | BLENotify | BLEBroadcast);
 
 // Set update time and calibration
-const int UPDATE_FREQUENCY = 5000; //Update every 5 seconds
+const int UPDATE_FREQUENCY = 10000; //Update every 10 seconds
 const float TEMP_CALIBRATION = -6.5; //temperature calibration, may need to set periodically
 long previousMillis = 0;
 
@@ -77,11 +77,24 @@ void setup() {
     while (1);
   }
 
+/*
+Add section to control RGB LED based on conditions
+    const int rPin = 22;
+    const int gPin = 23;
+    const int bPin = 24;
+
+    pinMode(22, OUTPUT);
+    pinMode(23, OUTPUT);
+    pinMode(24, OUTPUT);
+
+    */
+
+
 
 
   //Set up BLE
-  BLE.setLocalName("Arduino:Sandie");
-  BLE.setDeviceName("Arduino:Sandie");
+  BLE.setLocalName("Arduino:Sensor");
+  BLE.setDeviceName("Arduino:Sensor");
   BLE.setAdvertisedService(sensorService);
   sensorService.addCharacteristic(tempCharacteristic);
   sensorService.addCharacteristic(humidCharacteristic);
@@ -249,4 +262,55 @@ void updateReadings() {
     Serial.println(":SOUND");
 
     Serial.println();
+
+    updateLEDPin(temperatureAdj, (humidity/100));
+}
+
+void updateLEDPin(temperature, humidity) {
+    //Use this function to update the RGB LED based on the temperature and humidity readings
+    const int highTemp = 75;
+    const int lowTemp = 60;
+    const int humThres = 50;
+
+    //High temp + high humidity --> Yellow
+    if temperature > highTemp && humidity > humThres {
+            digitalWrite(rPin, HIGH);
+            digitalWrite(gPin, HIGH);
+            digitalWrite(bPin, LOW);
+    }
+    
+    //Med temp + high humidity --> Green
+    if lowTemp < temperature < highTemp && humidity > humThres {
+            digitalWrite(rPin, LOW);
+            digitalWrite(gPin, HIGH);
+            digitalWrite(bPin, LOW);
+        }
+
+    //Low temp + high humidity --> Purple
+    if temperature < lowTemp && humidity > humThres {
+            digitalWrite(rPin, HIGH);
+            digitalWrite(gPin, LOW);
+            digitalWrite(bPin, HIGH);
+        }
+
+    //High temp + low humidity --> Red
+    if temperature > highTemp && humidity < humThres {
+            digitalWrite(rPin, HIGH);
+            digitalWrite(gPin, LOW);
+            digitalWrite(bPin, LOW);
+        }
+
+    // Med temp + low humidity --> White
+    if lowTemp < temperature < highTemp && humidity < humThres {
+            digitalWrite(rPin, HIGH);
+            digitalWrite(gPin, HIGH);
+            digitalWrite(bPin, HIGH);
+        }
+
+    //Low temp + low humidity --> Blue
+    if temperature < lowTemp && humidity < humThres {
+            digitalWrite(rPin, LOW);
+            digitalWrite(gPin, LOW);
+            digitalWrite(bPin, HIGH);
+        }
 }
