@@ -1,0 +1,8 @@
+cd Documents/building-sensors/working_files
+
+python3 ./SensorLogger.py ed:d6:f1:0a:f7:19 studioTest sensor1
+
+Sensor 1 : ed:d6:f1:0a:f7:19
+Sensor 2 : e8:a6:e1:74:9c:53
+Sensor 3 : d3:9c:1e:9d:cd:e8
+Sensor 4 : e5:e0:b4:bd:28:31
