@@ -1,4 +1,4 @@
-// This code will read the temperature, humidity, pressure, and light data at specified intervals and print the data to the serial monitor
+ // This code will read the temperature, humidity, pressure, and light data at specified intervals and print the data to the serial monitor
 // Author: Chris Hazel
 // Date: 2020.04.08
 // Dat Last Edit: 2020.10.26
@@ -29,6 +29,11 @@ short sampleBuffer[256];
 // number of samples read
 volatile int samplesRead;
 
+#define rPin 22
+#define gPin 23
+#define bPin 24
+
+    
 void setup() {
   Serial.begin(9600);
   //while (!Serial);
@@ -77,20 +82,10 @@ void setup() {
     while (1);
   }
 
-/*
-Add section to control RGB LED based on conditions
-    const int rPin = 22;
-    const int gPin = 23;
-    const int bPin = 24;
-
-    pinMode(22, OUTPUT);
-    pinMode(23, OUTPUT);
-    pinMode(24, OUTPUT);
-
-    */
-
-
-
+  //Turn on RGB LED to ensure it's working
+  pinMode(rPin, OUTPUT);
+  pinMode(gPin, OUTPUT);
+  pinMode(bPin, OUTPUT);
 
   //Set up BLE
   BLE.setLocalName("Arduino:Sensor");
@@ -167,7 +162,7 @@ void loop() {
 
 int getTemperature(float calibration) {
     // Get the calibrated temperature as signed 16-bit int for BLE
-    return (int) (HTS.readTemperature() * 100) + (int) (calibration * 100);
+    return (int) ((HTS.readTemperature() * 100) + (calibration * 100));
 }
 
 unsigned int getHumidity() {
@@ -217,7 +212,7 @@ int getSound() {
 }
 
 int adjustTemperature(int temperature) {
-    int temperatureAdj = (temperature/100) * (9/5) + 32;
+    int temperatureAdj = ((temperature) * (1.8)) + 3200;
     return temperatureAdj;
 }
 
@@ -242,7 +237,7 @@ void updateReadings() {
 
     tempCharacteristic.writeValue(temperature);
     int temperatureAdj = adjustTemperature(temperature);
-    Serial.print(temperatureAdj);
+    Serial.print(temperatureAdj/100);
     Serial.println(":TEMPERATURE-F");
 
     humidCharacteristic.writeValue(humidity);
@@ -263,54 +258,60 @@ void updateReadings() {
 
     Serial.println();
 
-    updateLEDPin(temperatureAdj, (humidity/100));
+    updateLEDPin(temperatureAdj, humidity);
 }
 
-void updateLEDPin(temperature, humidity) {
+void updateLEDPin(int temperature, int humidity) {
     //Use this function to update the RGB LED based on the temperature and humidity readings
-    const int highTemp = 75;
-    const int lowTemp = 60;
-    const int humThres = 50;
+    int highTemp = 80*100;
+    int lowTemp = 60*100;
+    int humThres = 50*100;
 
     //High temp + high humidity --> Yellow
-    if temperature > highTemp && humidity > humThres {
-            digitalWrite(rPin, HIGH);
-            digitalWrite(gPin, HIGH);
-            digitalWrite(bPin, LOW);
+    if ((temperature > highTemp) && (humidity > humThres)) {
+            //Serial.println("YELLOW");
+            digitalWrite(rPin, LOW);
+            digitalWrite(gPin, LOW);
+            digitalWrite(bPin, HIGH);
     }
     
     //Med temp + high humidity --> Green
-    if lowTemp < temperature < highTemp && humidity > humThres {
-            digitalWrite(rPin, LOW);
-            digitalWrite(gPin, HIGH);
-            digitalWrite(bPin, LOW);
+    else if ((lowTemp < temperature) && (temperature < highTemp) && (humidity > humThres)) {
+            //Serial.println("GREEN");
+            digitalWrite(rPin, HIGH);
+            digitalWrite(gPin, LOW);
+            digitalWrite(bPin, HIGH);
         }
 
     //Low temp + high humidity --> Purple
-    if temperature < lowTemp && humidity > humThres {
-            digitalWrite(rPin, HIGH);
-            digitalWrite(gPin, LOW);
-            digitalWrite(bPin, HIGH);
-        }
-
-    //High temp + low humidity --> Red
-    if temperature > highTemp && humidity < humThres {
-            digitalWrite(rPin, HIGH);
-            digitalWrite(gPin, LOW);
+    else if ((temperature < lowTemp) && (humidity > humThres)) {
+            //Serial.println("PURPLE");
+            digitalWrite(rPin, LOW);
+            digitalWrite(gPin, HIGH);
             digitalWrite(bPin, LOW);
         }
 
-    // Med temp + low humidity --> White
-    if lowTemp < temperature < highTemp && humidity < humThres {
-            digitalWrite(rPin, HIGH);
+    //High temp + low humidity --> Red
+    else if ((temperature > highTemp) && (humidity < humThres)) {
+            //Serial.println("RED");
+            digitalWrite(rPin, LOW);
             digitalWrite(gPin, HIGH);
             digitalWrite(bPin, HIGH);
         }
 
-    //Low temp + low humidity --> Blue
-    if temperature < lowTemp && humidity < humThres {
+    // Med temp + low humidity --> White
+    else if ((lowTemp < temperature) && (temperature < highTemp) && (humidity < humThres)) {
+            //Serial.println("WHITE");
             digitalWrite(rPin, LOW);
             digitalWrite(gPin, LOW);
-            digitalWrite(bPin, HIGH);
+            digitalWrite(bPin, LOW);
+        }
+
+    //Low temp + low humidity --> Blue
+    else if ((temperature < lowTemp) && (humidity < humThres)) {
+            //Serial.println("BLUE");
+            digitalWrite(rPin, HIGH);
+            digitalWrite(gPin, HIGH);
+            digitalWrite(bPin, LOW);
         }
 }
