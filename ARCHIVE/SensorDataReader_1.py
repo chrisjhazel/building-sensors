@@ -1,13 +1,18 @@
 import csv
 import time
 import pandas as pd
-import plotly.graph_objects as go
+#import plotly.graph_objects as go
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
+
+filedir = r"/Documents/Github/building-sensors/ARCHIVE/"
+print(filedir)
 
 filename = "test_data_2"
-csvFile = "{}.csv".format(filename)
-keyFile = "{}_keys.csv".format(filename)
+csvFile = "{}{}.csv".format(filedir, filename)
+keyFile = "{}{}_keys.csv".format(filedir, filename)
+
+print(csvFile)
 
 def keyReader(keyFile):
     #Read the CSV key file to determine the data types and values used

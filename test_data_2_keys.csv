@@ -1,0 +1,7 @@
+Data Type,Value Type
+TIME,ticks
+TEMPERATURE,F
+HUMIDITY,%
+PRESSURE,PSI
+LIGHT,Units
+SOUND,units

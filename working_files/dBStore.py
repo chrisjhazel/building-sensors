@@ -19,7 +19,7 @@ _host = 'localhost'
 
 
 
-def testDBExists(projectName):
+def testDBExists(projectName, createNew=True):
     # Test if the database exists
     try:
         con = psycopg2.connect(dbname='postgres', user=_user, host=_host, password=_password)
@@ -38,7 +38,11 @@ def testDBExists(projectName):
                 return True
 
         # If the project database does not exist, then create a new one
-        return createNewProject(projectName)
+        # If createNew is True
+        if createNew == True:
+            return createNewProject(projectName)
+        else:
+            return False
     
     except Exception as e:
         print(e)

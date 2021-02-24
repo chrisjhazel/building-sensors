@@ -6,7 +6,7 @@ fileName = "test_data_2"
 csvFile = ("{}.csv".format(fileName))
 keyFile = ("{}_keys.csv".format(fileName))
 
-ser = serial.Serial('/dev/tty.usbmodem14101')
+ser = serial.Serial('/dev/ttyACM0')
 ser.flushInput()
 count = 0
 rowList = [time.time()] #create a list to hold each item of data
