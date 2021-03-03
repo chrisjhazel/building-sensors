@@ -1,6 +1,0 @@
-{
-    "board": "adafruit:nrf52:feather52840sense",
-    "port": "/dev/tty.usbmodem14201",
-    "sketch": "development/SensorDevice_Feather/SensorDevice_Feather.ino",
-    "configuration": "softdevice=s140v6,debug=l2"
-}

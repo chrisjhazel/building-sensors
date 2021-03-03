@@ -10,13 +10,21 @@
 #include <PDM.h>
 
 //Set up the bluetooth characteristics
+/*
+This script it currently set up to use a single BLE service "sensorService"
+that contains multiple characteristics. This could be adjusted to be multiple 
+services each with a single or multiple characteristics. For now, keep similar 
+strategy between devices.
+
+20200208 -- in later update, pull out the updateFrew characteristic to be and individual service along with any other device specific information
+*/
 BLEService sensorService("181A");
 BLEIntCharacteristic tempCharacteristic("2A6E", BLERead | BLENotify | BLEBroadcast);
 BLEUnsignedIntCharacteristic humidCharacteristic("2A6F", BLERead | BLENotify | BLEBroadcast);
 BLEUnsignedIntCharacteristic pressureCharacteristic("2A6D", BLERead | BLENotify | BLEBroadcast);
-BLEIntCharacteristic lightCharacteristic("adb5976d-f756-43ca-8a32-1a6cdf97601f", BLERead | BLENotify | BLEBroadcast);
-BLEIntCharacteristic soundCharacteristic("fbfebdd5-f415-43c9-b5d5-c3094f2c86be", BLERead | BLENotify | BLEBroadcast);
-BLEIntCharacteristic updateFreq("2A6B", BLERead | BLENotify | BLEBroadcast);
+BLEIntCharacteristic lightCharacteristic("adb5976d-f756-43ca-8a32-1a6cdf97601f", BLERead | BLENotify | BLEBroadcast); //Change UUID to 0x2B03
+BLEIntCharacteristic soundCharacteristic("fbfebdd5-f415-43c9-b5d5-c3094f2c86be", BLERead | BLENotify | BLEBroadcast); //Change UUID to 0x27C3
+BLEIntCharacteristic updateFreq("2A6B", BLERead | BLENotify | BLEBroadcast); //Change to custom UUID
 
 // Set update time and calibration
 const int UPDATE_FREQUENCY = 10000; //Update every 10 seconds
