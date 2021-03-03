@@ -65,7 +65,7 @@ def main():
             connectCount = 0
 
             # Test if the project database exists, if not, create new one
-            dbExists = dBStore.testDBExists(projectName)
+            dbExists = dBStore.testDBExists(projectName, createNew=True)
 
             if dbExists == True:
 

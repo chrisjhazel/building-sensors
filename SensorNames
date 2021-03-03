@@ -1,8 +1,8 @@
-cd Documents/building-sensors/working_files
+cd Documents/Github/building-sensors/working_files
 
 python3 ./SensorLogger.py ed:d6:f1:0a:f7:19 studioTest sensor1
 
-Sensor 1 : ed:d6:f1:0a:f7:19
-Sensor 2 : e8:a6:e1:74:9c:53
-Sensor 3 : d3:9c:1e:9d:cd:e8
+Sensor 1 : ed:d6:f1:0a:f7:19 || f9:b5:ba:bb:cc:18
+Sensor 2 : e8:a6:e1:74:9c:53 || 37:79:19:d8:27:18 || possibly broken sensor, unable to start HTS
+Sensor 3 : d3:9c:1e:9d:cd:e8 || 90:ac:c5:d3:c1:18
 Sensor 4 : e5:e0:b4:bd:28:31
