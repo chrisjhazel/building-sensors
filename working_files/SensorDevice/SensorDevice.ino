@@ -22,9 +22,12 @@ BLEService sensorService("181A");
 BLEIntCharacteristic tempCharacteristic("2A6E", BLERead | BLENotify | BLEBroadcast);
 BLEUnsignedIntCharacteristic humidCharacteristic("2A6F", BLERead | BLENotify | BLEBroadcast);
 BLEUnsignedIntCharacteristic pressureCharacteristic("2A6D", BLERead | BLENotify | BLEBroadcast);
-BLEIntCharacteristic lightCharacteristic("adb5976d-f756-43ca-8a32-1a6cdf97601f", BLERead | BLENotify | BLEBroadcast); //Change UUID to 0x2B03
-BLEIntCharacteristic soundCharacteristic("fbfebdd5-f415-43c9-b5d5-c3094f2c86be", BLERead | BLENotify | BLEBroadcast); //Change UUID to 0x27C3
-BLEIntCharacteristic updateFreq("2A6B", BLERead | BLENotify | BLEBroadcast); //Change to custom UUID
+BLEIntCharacteristic lightCharacteristic("2B03", BLERead | BLENotify | BLEBroadcast); //Change UUID to 0x2B03
+BLEIntCharacteristic soundCharacteristic("27C3", BLERead | BLENotify | BLEBroadcast); //Change UUID to 0x27C3
+
+BLEService deviceInfo("a4ce5b72-d26c-436e-a451-fdcc16acd437");
+BLEIntCharacteristic updateFreq("e74ca207-cfbc-4cbd-8339-e0e55144d648", BLERead | BLENotify | BLEBroadcast); //Change to custom UUID
+BLEFloatCharacteristic tempCal("e8be61a0-44e6-4220-bec7-7fa7f0f7be8f", BLERead | BLENotify | BLEBroadcast); 
 
 // Set update time and calibration
 const int UPDATE_FREQUENCY = 10000; //Update every 10 seconds
@@ -104,9 +107,13 @@ void setup() {
   sensorService.addCharacteristic(pressureCharacteristic);
   sensorService.addCharacteristic(lightCharacteristic);
   sensorService.addCharacteristic(soundCharacteristic);
-  sensorService.addCharacteristic(updateFreq);
+  
+  BLE.setAdvertisedService(deviceInfo);
+  deviceInfo.addCharacteristic(updateFreq);
+  deviceInfo.addCharacteristic(tempCal);
 
   BLE.addService(sensorService);
+  BLE.addService(deviceInfo);
   BLE.advertise();
   Serial.println("BLE Peripheral");
 
@@ -125,12 +132,19 @@ void setup() {
   pressureCharacteristic.broadcast();
   lightCharacteristic.broadcast();
   soundCharacteristic.broadcast();
+  
   updateFreq.broadcast();
+  tempCal.broadcast();
 
   updateFreq.writeValue(UPDATE_FREQUENCY);
   Serial.print("The update frequency is: ");
   Serial.print(UPDATE_FREQUENCY/1000);
   Serial.println(" seconds");
+
+  tempCal.writeValue(TEMP_CALIBRATION);
+  Serial.print("The temperature calibration is: ");
+  Serial.print(TEMP_CALIBRATION);
+  Serial.println(" °F");
 
 }
 

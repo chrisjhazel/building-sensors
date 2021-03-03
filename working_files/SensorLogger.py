@@ -41,17 +41,20 @@ def main():
             print("Connecting…")
             nano_sense = btle.Peripheral(args.mac_address)
 
-            # Discover the service available on the device
+            # Discover the services available on the device
             print("Discovering Services…")
             _ = nano_sense.services
             environmental_sensing_service = nano_sense.getServiceByUUID("181A")
+            device_info_service = nano_sense.getServiceByUUID("a4ce5b72-d26c-436e-a451-fdcc16acd437")
+
 
             # Discover the characteristics available on the device
             print("Discovering Characteristics…")
             _ = environmental_sensing_service.getCharacteristics()
+            _ = device_info_service.getCharacteristics()
 
             # Get the update frequency from the sensor and use as the update time on the hub
-            updateTime = read_updateTime(environmental_sensing_service)
+            updateTime = read_updateTime(device_info_service)
 
             #Get names for the project and the sensor
             # The SQL DB and Tables are lower case, so inputs must be made all lowercase
@@ -238,7 +241,7 @@ def read_temperature(service):
 
 
 def read_updateTime(service):
-    update_char = service.getCharacteristics("2A6B")[0]
+    update_char = service.getCharacteristics("e74ca207-cfbc-4cbd-8339-e0e55144d648")[0]
     update = update_char.read()
     update = byte_array_to_int(update)
     update = decimal_exponent_three(update)
@@ -246,8 +249,7 @@ def read_updateTime(service):
 
 
 def read_light(service):
-    light_char = service.getCharacteristics(
-        "adb5976d-f756-43ca-8a32-1a6cdf97601f")[0]
+    light_char = service.getCharacteristics("2B03")[0]
     light = light_char.read()
     light = byte_array_to_int(light)
     print(f"Light: {light} Units")
@@ -256,8 +258,7 @@ def read_light(service):
 
 
 def read_sound(service):
-    sound_char = service.getCharacteristics(
-        "fbfebdd5-f415-43c9-b5d5-c3094f2c86be")[0]
+    sound_char = service.getCharacteristics("27C3")[0]
     sound = sound_char.read()
     sound = byte_array_to_int(sound)
     print(f"Sound: {sound} Units")
