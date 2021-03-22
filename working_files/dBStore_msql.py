@@ -17,7 +17,7 @@ def getConfig(userName, pwrd):
     config = {
         'user': userName,
         'password': pwrd,
-        'host': ,
+        'host':,
         'database': 'sensorDev', #This will need to change to the project specific database, leave for now
         'raise_on_warnings': True
     }
@@ -48,8 +48,8 @@ def checkDatabaseExists(userName, pwrd):
         
         cnx.close() #Likely don't need this line
         return False
-
-def writeSensorTable(databaseName, userName, pwrd, sensorName):
+"""
+def writeSensorTable__ARCHIVE(databaseName, userName, pwrd, sensorName):
     config = getConfig(userName, pwrd)
     columnKeys = addKeys()
 
@@ -73,9 +73,33 @@ def writeSensorTable(databaseName, userName, pwrd, sensorName):
         print(e)
         print("Could not create new tables!")
         return False
+"""
+def writeSensorTable(sensorName, config):
+    columnKeys = addKeys()
 
+    try:
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
 
-def getTableList(databaseName, userName, pwrd, sensorName):
+        #Create the data table
+        sqlCreateTable = "CREATE TABLE {}__data (time datetime, {} float(24), {} float(24), {} float(24), {} smallint, {} smallint);".format(sensorName, columnKeys[0], columnKeys[1], columnKeys[2], columnKeys[3], columnKeys[4])
+        cursor.execute(sqlCreateTable)
+        cnx.commit()
+
+        #Create the records table
+        sqlCreateRecordTable = "CREATE TABLE {}__records (recordTable VARCHAR(24));".format(sensorName)
+        cursor.execute(sqlCreateRecordTable)
+        cnx.commit()
+
+        return True
+    
+    except Exception as e:
+        print(e)
+        print("Could not create new tables!")
+        return False
+
+"""
+def getTableList__ARCHIVE(databaseName, userName, pwrd, sensorName):
 
     config = getConfig(userName, pwrd)
 
@@ -112,28 +136,154 @@ def getTableList(databaseName, userName, pwrd, sensorName):
             else:
                 print("Could not create new tables!")
                 return 0
-
-
-def writeCSV2Table(databaseName, userName, pwrd, sensorName, csvFileName):
-
-    config = getConfig(userName, pwrd)
+    except Exception as e:
+        print(e)
+        print("Could not create new table!")
+        return False
+"""
+def checkTableExists(sensorName, config):
 
     try:
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
 
-        with open(csvFileName, "r", newline='') as csvFile:
-            tableData = csv.reader(csvFile)
-            #tableData = csvFile.readline()
+        #Change this to read the tablesreceived table for what tables have been imported to the remote server
+        sqlGetTableList = ("SHOW TABLES;")
+        cursor.execute(sqlGetTableList)
 
-            for dataRow in tableData:
-                sqlWriteData = "INSERT INTO {} VALUES ({}, {}, {}, {}, {}, {});".format(sensorTableName, dataRow[0], dataRow[1], dataRow[2], dataRow[3], dataRow[4], dataRow[5])
-                cursor.execute(sqlWriteData)
+        #Get the remote table list
+        remoteTableList = cursor.fetchall()
+        #print(remoteTableList)
+
+        remoteTables = []
+        for rTable in remoteTableList:
+            remoteTables.append(rTable[0])
+
+        #print(remoteTables)
+        if (sensorName + "__data") in remoteTables:
+            return True
+        else:
+            print("Could not find sensor table in remote database.")
+            print("Attempting to create table...")
+
+            newTable = writeSensorTable(sensorName, config)
+
+            if newTable:
+                print("New Tables created")
+                return True
+            else:
+                print("Could not create new table")
+                return False
+
+    except Exception as e:
+        print(e)
+        print("Could not find or create table!")
+        return False
+
+
+
+def writeDataTable2Remote(databaseName, userName, pwrd, sensorName, dataTable):
+
+    columnKeys = addKeys()
+    config = getConfig(userName, pwrd)
+
+    try:
+        tableExists = checkTableExists(sensorName, config)
+
+        if tableExists:
+            cnx = mysql.connector.connect(**config)
+            cursor = cnx.cursor()
+
+            for dataRow in dataTable:
+                #print("dataRow", dataRow)
+                #sqlWriteData = "INSERT INTO {} (TIME, {}, {}, {}, {}, {}) VALUES ({}, {}, {}, {}, {}, {});".format((sensorName + "__data"), columnKeys[0], columnKeys[1], columnKeys[2], columnKeys[3], columnKeys[4], dataRow[0], dataRow[1], dataRow[2], dataRow[3], dataRow[4], dataRow[5])
+                #cursor.execute(sqlWriteData)
+                tableName = sensorName + '__data'
+                sqlWrite = ("INSERT INTO " + (tableName) +
+                            " (time, temperature, humidity, pressure, light, sound) "
+                            "VALUES (%s, %s, %s, %s, %s, %s);")
+                
+                sqlData = (dataRow[0], dataRow[1], dataRow[2], dataRow[3], dataRow[4], dataRow[5])
+                cursor.execute(sqlWrite, sqlData)
                 cnx.commit()
             
-        return True
+            return True
+        
+        else:
+            print("Could not create new sensor table!")
+            return False
     
     except Exception as e:
         print(e)
         print("Could not record data to the remote server")
-        return e
+        return False
+
+"""
+def writeDataTable2Remote__ARCHIVE(databaseName, userName, pwrd, sensorName, dataTable):
+
+    columnKeys = addKeys()
+    config = getConfig(userName, pwrd)
+
+    try:
+        tableExists = checkTableExists(sensorName, config)
+
+        if tableExists:
+            cnx = mysql.connector.connect(**config)
+            cursor = cnx.cursor()
+
+            for dataRow in dataTable:
+                print("dataRow", dataRow)
+                sqlWriteData = "INSERT INTO {} (TIME, {}, {}, {}, {}, {}) VALUES ({}, {}, {}, {}, {}, {});".format((sensorName + "__data"), columnKeys[0], columnKeys[1], columnKeys[2], columnKeys[3], columnKeys[4], dataRow[0], dataRow[1], dataRow[2], dataRow[3], dataRow[4], dataRow[5])
+                cursor.execute(sqlWriteData)
+                cnx.commit()
+            
+            return True
+        
+        else:
+            print("Could not create new sensor table!")
+            return False
+    
+    except Exception as e:
+        print(e)
+        print("Could not record data to the remote server")
+        return False
+
+
+def writeCSV2Table(databaseName, userName, pwrd, sensorName, csvFileName):
+
+    columnKeys = addKeys()
+    config = getConfig(userName, pwrd)
+
+    try:
+
+        tableExists = checkTableExists(sensorName, config)
+
+        if tableExists:
+
+            cnx = mysql.connector.connect(**config)
+            cursor = cnx.cursor()
+
+            with open(csvFileName, "r", newline='') as csvFile:
+                tableData = csv.reader(csvFile)
+                #tableData = csvFile.readline()
+
+                for dataRow in tableData:
+                    print("dataRow: ", dataRow)
+                    print("columnKeys: ", columnKeys)
+                    sqlWriteData = "INSERT INTO {} (TIME, {}, {}, {}, {}, {}) VALUES ({}, {}, {}, {}, {}, {});".format((sensorName + "__data"), columnKeys[0], columnKeys[1], columnKeys[2], columnKeys[3], columnKeys[4], dataRow[0], dataRow[1], dataRow[2], dataRow[3], dataRow[4], dataRow[5])
+                    cursor.execute(sqlWriteData)
+                    cnx.commit()
+            
+            #Should add a snippet here to add record key
+                
+            return True
+        
+        else:
+            print("Could not create new sensor table!")
+            return False
+    
+    except Exception as e:
+        print(e)
+        print("Could not record data to the remote server")
+        return False
+"""

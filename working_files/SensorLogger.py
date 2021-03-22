@@ -35,7 +35,7 @@ def main():
     connectCount = 0
 
     #Attempt to connect to BLE device and run the logger script
-    while connectCount < 5:
+    while connectCount < 50:
         try:
             # Connect the sensor device to the hub
             print("Connecting…")

@@ -165,7 +165,8 @@ def insertDataRow(dataRow, projectName, sensorTableName, columnKeys):
         print("Could not record data!")
         return e
 
-def writeTableData2CSV(projectName, tableName):
+"""
+def writeTableData2CSV__ARCHIVE(projectName, tableName):
     #Read the contents of a table and write to a CSV file on the local drive
     csvFileName = "xfer.csv"
     
@@ -178,11 +179,33 @@ def writeTableData2CSV(projectName, tableName):
         cursor.execute(readTable)
 
         with open(csvFileName, "w", newline='') as csvFile:
+            #next(csvFile) #Skip the header row
             csvWriter = csv.writer(csvFile)
             csvWriter.writerow([i[0] for i in cursor.description])
             csvWriter.writerows(cursor)
 
         return csvFileName
+    
+    except Exception as e:
+        print(e)
+        print("Could not read data from table!")
+        return e
+"""
+
+def writeTableData2CSV(projectName, tableName):
+    #Read the contents of a table and write to a CSV file on the local drive
+    
+    try:
+        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        cursor = con.cursor()
+        con.autocommit = True
+
+        readTable = "SELECT * FROM {}".format(tableName)
+        cursor.execute(readTable)
+
+        tableInfo = cursor.fetchall()
+
+        return tableInfo
     
     except Exception as e:
         print(e)
@@ -205,6 +228,26 @@ def renameTable(projectName, tableName):
         print(e)
         print("Could not rename local table")
         return e
+
+def unrenameTable(projectName, tableName):
+    try:
+        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        cursor = con.cursor()
+        con.autocommit = True
+
+        splitName = tableName.split("__")
+
+        sqlRenameTable = "ALTER TABLE {} RENAME TO {}".format(tableName, (splitName[0]+"__"+splitName[1]))
+        cursor.execute(sqlRenameTable)
+        con.commit()
+
+        return True
+    
+    except Exception as e:
+        print(e)
+        print("Could not rename local table")
+        return e
+
 
 def dropTables(projectName, tableName):
     try:

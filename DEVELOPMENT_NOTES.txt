@@ -1,1 +1,8 @@
 Make new file for the column keys to reference between py scripts
+    Create link in dBStore file
+
+Update table naming to include "0" i.e. sensor1__20210305 rather than sensor1__202135
+
+Set config function in dBStore similar to dBStore_msql
+
+

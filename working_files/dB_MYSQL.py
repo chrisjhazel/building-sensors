@@ -10,6 +10,12 @@ Remote server DB to have i Sensors x two tables
 Sensor_table1 == all data
 Sensor_table2 == tables received from local
 
+This script is a Chris OG Original
+
+To Run in command line terminal:
+python3 ./{scriptName} {ProjectName} 
+python3 ./dB_MYSQL.py Project1
+
 """
 
 
@@ -19,6 +25,7 @@ import psycopg2
 import time
 import datetime
 import getpass
+from argparse import ArgumentParser
 import csv
 import os
 
@@ -32,8 +39,10 @@ uploadHour = 6 #time is in 24 hour format
 
 if uploadHour < 12:
     print("Upload time set for {} AM".format(uploadHour))
+    uploadTime = "{} AM".format(uploadHour)
 elif uploadHour > 12:
     print("Upload time set for {} PM".format(uploadHour-12))
+    uploadTime = "{} PM".format(uploadHour-12)
 
 
 def getTime(uploadHour):
@@ -50,7 +59,7 @@ def getSensorName(tables):
     dateInfo = []
 
     for table in tables:
-        splitName = table.split("__")
+        splitName = table[0].split("__")
         if splitName[0] not in sensorName:
             sensorName.append(splitName[0])
         dateInfo.append(splitName[1])
@@ -140,8 +149,9 @@ def main():
     #Check for database on remote with same name
     mySQLuser = input("mySQL Server User: ")
     mySQLpwrd = getpass.getpass("mySQL Server Password: ")
+    #mySQLProject = input("Project name: ")
 
-    mySQLDB_Exists = checkDatabaseExists(mySQLuser, mySQLpwrd)
+    mySQLDB_Exists = dBStore_msql.checkDatabaseExists(mySQLuser, mySQLpwrd)
     if mySQLDB_Exists:
         print("Found {} database on the remote server.".format(databaseName))
         print("Start uploading data at {}.".format(uploadTime))
@@ -151,12 +161,16 @@ def main():
     
     #Each day at specific time (6am):
     # Sleep until upload time
-    waitTime = getTime(uploadHour)
-    time.sleep(waitTime)
+    ####
+    ####
+    #waitTime = getTime(uploadHour)
+    #time.sleep(waitTime)
+    ####
+    ####
     
     connectCount = 0
 
-    while connectCount < 10:
+    while connectCount < 1: #Change to 10
         try:
             #Get local table list to compare against remote table list
             localTableList = dBStore.getTableList(databaseName)
@@ -176,74 +190,77 @@ def main():
             
 
             #Get each sensor that is being recorded
+            #print(localTableList)
             sensorNameList, dateInfoList = getSensorName(localTableList)
+            print('local table list: ', localTableList)
             for sensor in sensorNameList:
 
+                ####
+                ##All data is being written to the tables
+                ## Need to check table names
+                ## Make sure ARCHIVE tables are not being written to the remote server
+                ####
                 sensorTableList = []
                 for table in localTableList:
-                    if str(sensor) in table:
-                        if "__archive" not in table.lower() or todayStr not in table:
-                            sensorTableList.append(table)
+                    if str(sensor) in table[0]:
+                        if "__archive" not in table[0].lower() and todayStr not in table[0]:
+                            print("sensor Table: ", table[0])
+                            sensorTableList.append(table[0])
+                            print("today dat: ", todayStr)
+                            if todayStr in table[0]:
+                                print('coolio')
 
+
+                print("Sensor Table List: ", sensorTableList)
                 #Get remote table list to compare against local table list
                 #Probably don't need this right now
                 #remoteTableList = dBStore_msql.getTableList(databaseName, mySQLuser, mySQLpwrd, sensor)
+                """
+
 
                 for writeTable in sensorTableList:
-                    csvFile = dBStore.writeTableData2CSV(databaseName, writeTable)
-                    writeRemote = dBStore_msql.writeCSV2Table(databaseName, mySQLuser, mySQLpwrd, sensor, csvFile)
-                    os.remove(csvFile) #Delete the csv file
-                    tableRename = dBStore.renameTable(databaseName, writeTable)
+                    dataTable = dBStore.writeTableData2CSV(databaseName, writeTable)
+                    writeRemote = dBStore_msql.writeDataTable2Remote(databaseName, mySQLuser, mySQLpwrd, sensor, dataTable)
+                    #writeRemote = dBStore_msql.writeCSV2Table(databaseName, mySQLuser, mySQLpwrd, sensor, csvFile)
+                    #os.remove(csvFile) #Delete the csv file
+                    if writeRemote:
+                        tableRename = dBStore.renameTable(databaseName, writeTable)
+                    else:
+                        print("Could not write to remote server.")
+                        print("Table name to remain.")
 
+
+
+                """
+            print("ALL DONE")
             dateCompare = tableDateRef()
             dropTables = []  
             for table in localTableList:
-                if "__archive" in table.lower():
-                    splitName = table.split("__")
+                #print(table)
+                if "__archive" in table[0].lower():
+                    splitName = table[0].split("__")
                     if splitName[1] not in dateCompare:
-                        dropTables.append(table)
+                        dropTables.append(table[0])
 
             for table in dropTables:
                 dropTable = dBStore.dropTables(databaseName, table)
-
-
-
-
-
-                
-
-
-
-######
-#NEW
-#######
-
-#Check for local tables that do not contain "__ARCHIVE" suffix
-#Remove today's tables from table group
-#Find sensor name and dateinfo for each table
-#For each sensor in the table group
-    #Test for sensor table in the remote server
-    # If no table: create table and records table
-    # For each table per sensor
-        #Write table data to CSV
-        #Append CSV to remote table
-        #Delete CSV
-        #Suffix table with "__ARCHIVE"
-#Delete all tables older than 30 days
-#Find time delta between now and 6am: sleep for time delta
-
-
-
-
-######
-#OLD
-######
-
-#Check tables on local || Tables are named SensorName_YearMonthDay
-#Check for yesterday's table(s); if tables do not exist in remote DB, add tables
-#If table(s) on remote is greater than 30 days old, delete table(s)
-
-#Go to sleep until next day at 6am
+            
+            # Sleep until upload time
+            ####
+            ####
+            connectCount = 10 #Change to 0
+            #waitTime = getTime(uploadHour)
+            #time.sleep(waitTime)
+            ####
+            ####
+        
+        except Exception as e:
+            print(e)
+            print("Could not transfer data table to remote server!")
+            
+            connectCount += 1
+            time.sleep(60)
+         
 
 def get_args():
     # Get arguments passed through the terminal
