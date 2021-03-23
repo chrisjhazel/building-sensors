@@ -1,7 +1,7 @@
-# This script contains a series of functions for interacting with the PostgreSQL database
+# This script contains a series of functions for interacting with the local PostgreSQL database
 # Author: Chris Hazel
 # Date Created: 2020.10.22
-# Date Last Edit: 2020.10.26
+# Date Last Edit: 2020.03.22
 
 """
 REFERENCES:
@@ -14,17 +14,24 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 import csv
 
-#Set Generic user and password information to pass to each function
-_user = 'sensorUser'
-_password = 'sensors'
-_host = 'localhost'
 
+def getConfig():
+    #Set function for configuration to connect to local table
+    config = {
+        'dbname': 'postgres'
+        'user': 'sensorUser',
+        'password': 'sensors',
+        'host': 'localhost',,
+        #'raise_on_warnings': True
+    }
 
+    return config
 
 def testDBExists(projectName, createNew=True):
     # Test if the database exists
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname='postgres', user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
 
         # Get the list of database names from the PostgreSQL servers
@@ -54,9 +61,10 @@ def testDBExists(projectName, createNew=True):
 
 def createNewProject(projectName):
     # Create a new project database
+    config = getConfig()
     try:
         #Connect to Postgres Database system
-        con = psycopg2.connect(dbname='postgres', user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
         #Set the cursor and create database command
@@ -76,8 +84,9 @@ def createNewProject(projectName):
 
 def testTableExists(projectName, sensorTableName, columnKeys):
     # Test if the sensor table exists within the project database
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
 
         # Get the list of table names from the project database
@@ -102,8 +111,9 @@ def testTableExists(projectName, sensorTableName, columnKeys):
 
 def getTableList(projectName):
     # Test if the sensor table exists within the project database
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
 
         # Get the list of table names from the project database
@@ -123,8 +133,9 @@ def getTableList(projectName):
 
 def createNewTable(projectName, sensorTableName, columnKeys):
     # Create a table
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
 
         #Create a new table with the current name
@@ -141,8 +152,9 @@ def createNewTable(projectName, sensorTableName, columnKeys):
 
 def insertDataRow(dataRow, projectName, sensorTableName, columnKeys):
     # Write the datarow to the SQL database
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
         con.autocommit = True
 
@@ -165,38 +177,11 @@ def insertDataRow(dataRow, projectName, sensorTableName, columnKeys):
         print("Could not record data!")
         return e
 
-"""
-def writeTableData2CSV__ARCHIVE(projectName, tableName):
+def getLocalTableData(projectName, tableName):
     #Read the contents of a table and write to a CSV file on the local drive
-    csvFileName = "xfer.csv"
-    
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
-        cursor = con.cursor()
-        con.autocommit = True
-
-        readTable = "SELECT * FROM {}".format(tableName)
-        cursor.execute(readTable)
-
-        with open(csvFileName, "w", newline='') as csvFile:
-            #next(csvFile) #Skip the header row
-            csvWriter = csv.writer(csvFile)
-            csvWriter.writerow([i[0] for i in cursor.description])
-            csvWriter.writerows(cursor)
-
-        return csvFileName
-    
-    except Exception as e:
-        print(e)
-        print("Could not read data from table!")
-        return e
-"""
-
-def writeTableData2CSV(projectName, tableName):
-    #Read the contents of a table and write to a CSV file on the local drive
-    
-    try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
         con.autocommit = True
 
@@ -213,8 +198,10 @@ def writeTableData2CSV(projectName, tableName):
         return e
 
 def renameTable(projectName, tableName):
+    #Rename the table to add "__archive"
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
         con.autocommit = True
 
@@ -230,8 +217,10 @@ def renameTable(projectName, tableName):
         return e
 
 def unrenameTable(projectName, tableName):
+    #This function is not current used
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
         con.autocommit = True
 
@@ -250,8 +239,10 @@ def unrenameTable(projectName, tableName):
 
 
 def dropTables(projectName, tableName):
+    #Drop the old tables from the local database
+    config = getConfig()
     try:
-        con = psycopg2.connect(dbname=projectName, user=_user, host=_host, password=_password)
+        con = psycopg2.connect(**config)
         cursor = con.cursor()
         con.autocommit = True
 

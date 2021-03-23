@@ -1,7 +1,7 @@
 #This script will read sensor data communicated via BLE and log the data on local storage
 #Author: Chris Hazel
 #Date Started: 2020.10.05
-#Date Last Major Edit: 2020.10.26
+#Date Last Major Edit: 2020.03.22
 
 """
 Notes:
@@ -22,7 +22,8 @@ from argparse import ArgumentParser
 from bluepy import btle  # linux only (no mac)
 from colr import color as colr
 import csv
-import dBStore
+import dBStore_pg # Script to connect to the local Postgres Database
+from keyStore import addKeys
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -43,15 +44,26 @@ def main():
 
             # Discover the services available on the device
             print("Discovering Services…")
-            _ = nano_sense.services
-            environmental_sensing_service = nano_sense.getServiceByUUID("181A")
-            device_info_service = nano_sense.getServiceByUUID("a4ce5b72-d26c-436e-a451-fdcc16acd437")
+            discovered = False
+            while discovered != True:
+                try:
+                    _ = nano_sense.services
+                    environmental_sensing_service = nano_sense.getServiceByUUID("181A")
+                    device_info_service = nano_sense.getServiceByUUID("a4ce5b72-d26c-436e-a451-fdcc16acd437")
+                    discovered = True
+                except:
+                    break
 
 
             # Discover the characteristics available on the device
             print("Discovering Characteristics…")
-            _ = environmental_sensing_service.getCharacteristics()
-            _ = device_info_service.getCharacteristics()
+            discovered = False
+            while discovered != True:
+                try:
+                    _ = environmental_sensing_service.getCharacteristics()
+                    _ = device_info_service.getCharacteristics()
+                except:
+                    break
 
             # Get the update frequency from the sensor and use as the update time on the hub
             updateTime = read_updateTime(device_info_service)
@@ -62,13 +74,13 @@ def main():
             sensorName = args.sensor_name.lower()
 
             # Add key values as a csv file to later read
-            columnKeys = addKeys(projectName)
+            columnKeys = addKeys()
 
             #If successful connection, reset connect counter to 0
             connectCount = 0
 
             # Test if the project database exists, if not, create new one
-            dbExists = dBStore.testDBExists(projectName, createNew=True)
+            dbExists = dBStore_pg.testDBExists(projectName, createNew=True)
 
             if dbExists == True:
 
@@ -102,10 +114,10 @@ def getSensorData(environmental_sensing_service, projectName, sensorName, update
         # Test if today is equal to the variable 'today', if not, start a new table
         if todayNow != today:
             today = todayNow #Reset today variable to equal the current day
-            sensorTableName = ("{}__{}{}{}".format(sensorName, today.year, today.month, today.day))
+            sensorTableName = ("{}__{}{}{}".format(sensorName, today.year, dateFix(today.month), dateFix(today.day)))
 
             #Make a new table for today
-            tableExists = dBStore.testTableExists(projectName, sensorTableName, columnKeys)
+            tableExists = dBStore_pg.testTableExists(projectName, sensorTableName, columnKeys)
 
         if tableExists == True:
 
@@ -121,7 +133,7 @@ def getSensorData(environmental_sensing_service, projectName, sensorName, update
             dataRow.append(read_sound(environmental_sensing_service))
             
             # Send the dataRow list to be recorded in the SQL database
-            dataInsertSuccess = dBStore.insertDataRow(dataRow, projectName, sensorTableName, columnKeys)
+            dataInsertSuccess = dBStore_pg.insertDataRow(dataRow, projectName, sensorTableName, columnKeys)
             #print(dataInsertSuccess)
 
             time.sleep(updateTime)  # transmission frequency set on IoT device
@@ -129,22 +141,12 @@ def getSensorData(environmental_sensing_service, projectName, sensorName, update
             break
 
 
-def addKeys(projectName):
-    # Get keys for the data types
-    #This is based on the sensor.ino file, confirm between files
-    keys = [["TEMPERATURE", "°F"],
-            ["HUMIDITY", "%"], 
-            ["PRESSURE", "kPa"],
-            ["LIGHT", "UNITS"],
-            ["SOUND", "UNITS"]]
-
-    #Create column key list to pass to SQL table
-    columnKeys = []
-    for key in keys:
-        columnKeys.append(key[0])
-    
-    return columnKeys
-
+def dateFix(dateInst):
+    #This function will format the date instance to ensure that days and months are always 2-digit (i.e. 03 rather than 3)
+    if len(str(dateInst)) == 1:
+        return "0{}".format(str(dateInst))
+    else:
+        return (dateInst)
 
 def byte_array_to_int(value):
     # Raw data is hexstring of int values, as a series of bytes, in little endian byte order

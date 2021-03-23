@@ -1,7 +1,7 @@
  // This code will read the temperature, humidity, pressure, and light data at specified intervals and print the data to the serial monitor
 // Author: Chris Hazel
 // Date: 2020.04.08
-// Dat Last Edit: 2020.10.26
+// Dat Last Edit: 2020.03.22
 
 #include <ArduinoBLE.h>
 #include <Arduino_HTS221.h>
@@ -10,14 +10,6 @@
 #include <PDM.h>
 
 //Set up the bluetooth characteristics
-/*
-This script it currently set up to use a single BLE service "sensorService"
-that contains multiple characteristics. This could be adjusted to be multiple 
-services each with a single or multiple characteristics. For now, keep similar 
-strategy between devices.
-
-20200208 -- in later update, pull out the updateFrew characteristic to be and individual service along with any other device specific information
-*/
 BLEService sensorService("181A");
 BLEIntCharacteristic tempCharacteristic("2A6E", BLERead | BLENotify | BLEBroadcast);
 BLEUnsignedIntCharacteristic humidCharacteristic("2A6F", BLERead | BLENotify | BLEBroadcast);
@@ -30,7 +22,11 @@ BLEIntCharacteristic updateFreq("e74ca207-cfbc-4cbd-8339-e0e55144d648", BLERead 
 BLEFloatCharacteristic tempCal("e8be61a0-44e6-4220-bec7-7fa7f0f7be8f", BLERead | BLENotify | BLEBroadcast); 
 
 // Set update time and calibration
+// SET UPDATE FREQUENCY HERE
+//
 const int UPDATE_FREQUENCY = 10000; //Update every 10 seconds
+//
+//
 const float TEMP_CALIBRATION = -6.5; //temperature calibration, may need to set periodically
 long previousMillis = 0;
 
@@ -40,16 +36,17 @@ short sampleBuffer[256];
 // number of samples read
 volatile int samplesRead;
 
+//Set RGB pins numbers
 #define rPin 22
 #define gPin 23
 #define bPin 24
 
-    
+// Set up device
 void setup() {
   Serial.begin(9600);
-  //while (!Serial);
+  //while (!Serial); //This is used for local debugging purposes
   //Delay the sensor startups for a short period of time for when not connected to Serial Port
-  delay(10000); //delay 10 seconds, probably longer than needed
+  delay(10000); //delay 10 seconds, probably longer than needed. Some time needed to warm up the sensor
 
     //Blink light to confirm ready
     //Initialize the LED light to confirm that the sensor is collecting data
@@ -148,8 +145,8 @@ void setup() {
 
 }
 
+//Loop script
 void loop() {
-
   //Connect BLE
   BLEDevice central = BLE.central();
   /*

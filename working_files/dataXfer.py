@@ -14,23 +14,19 @@ This script is a Chris OG Original
 
 To Run in command line terminal:
 python3 ./{scriptName} {ProjectName} 
-python3 ./dB_MYSQL.py Project1
+python3 ./dataXfer.py Project1
 
 """
 
-
-import mysql.connector
-from mysql.connector import errorcode
 import psycopg2
 import time
 import datetime
 import getpass
 from argparse import ArgumentParser
-import csv
 import os
 
-import dBStore
-import dBStore_msql
+import dBStore_pg #script to connect with local Postgres Database
+import dBStore_msql #script to connect with the remote MySQL Database
  
 ################
 #Set upload time
@@ -82,52 +78,6 @@ def tableDateRef():
         dateStr = "{}{}{}".format(todayAdj.year, todayAdj.month, todayAdj.day)
         dateList.append(dateStr)
     return dateList
-"""
-def checkmSQLTables(databaseName, cursor):
-    #Check the mySQL tables to compare against the PostGres Tables
-
-    #Change this to read the tablesreceived table for what tables have been imported to the remote server
-    sqlGetTableList = ("SELECT table_name FROM information_scheme.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
-    cursor.execute(sqlGetTableList)
-
-    #Get the remote table list
-    remoteTableList = cursor.fetchall()
-
-    # Get the local table list
-    localTableList = dBStore.getTableList(databaseName)
-
-    tranferTables = []
-    for table in localTableList:
-        if table not in remoteTableList:
-            tranferTables.append(table)
-    
-    return tranferTables
-"""
-
-"""
-def transferTable2mSQL(tranferTable, cursor):
-    #Add new local tables to the remote server
-
-    #Read the table contents from the local Postgres table
-    #Change this to direct to Postgres Table rather than MySQL table
-    readTable = "SELECT * FROM {}".format(transferTable)
-    cursor.execute(readTable)
-
-    #Write the table to a temporary CSV file
-    with open("xfer.csv", "w", newline='') as csvWriter:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow([i[0] for i in cursor.description]) # write headers
-        csv_writer.writerows(cursor)
-    
-    sensorName, dateInfo = getSensorName(transferTable)
-
-
-    ### Test if table exists in database
-    ### Append data to table
-    ### Add Postgres table name +date to table list table on remote server
-    ### Delete CSV file
-"""
-
 
 def main():
     #Get arguments passed through the terminal
@@ -138,7 +88,7 @@ def main():
     databaseName = args.database_name.lower()
 
     #Confirm the database exists on local
-    dBExists = dBStore.testDBExists(databaseName, createNew=False)
+    dBExists = dBStore_pg.testDBExists(databaseName, createNew=False)
     if dBExists:
         print("Found {} database on the local disk.".format(databaseName))
         print("Now checking the remote server....")        
@@ -173,20 +123,13 @@ def main():
     while connectCount < 1: #Change to 10
         try:
             #Get local table list to compare against remote table list
-            localTableList = dBStore.getTableList(databaseName)
+            localTableList = dBStore_pg.getTableList(databaseName)
 
             #Get today to remove today's table from list
             todayStr = getToday()
 
             #Remove archive tables from the list
             #Archive tables have already been added to the remote table
-            """
-            #moved to sensor for loop to get only sensor specific tables
-            for table in localTableList:
-                if "__ARCHIVE" in table or todayStr in table:
-                    localTableList.Remove(table)
-            """
-
             
 
             #Get each sensor that is being recorded
@@ -212,17 +155,13 @@ def main():
 
 
                 print("Sensor Table List: ", sensorTableList)
-                #Get remote table list to compare against local table list
-                #Probably don't need this right now
-                #remoteTableList = dBStore_msql.getTableList(databaseName, mySQLuser, mySQLpwrd, sensor)
+
                 """
 
 
                 for writeTable in sensorTableList:
-                    dataTable = dBStore.writeTableData2CSV(databaseName, writeTable)
+                    dataTable = dBStore_pg.getLocalDataTable(databaseName, writeTable)
                     writeRemote = dBStore_msql.writeDataTable2Remote(databaseName, mySQLuser, mySQLpwrd, sensor, dataTable)
-                    #writeRemote = dBStore_msql.writeCSV2Table(databaseName, mySQLuser, mySQLpwrd, sensor, csvFile)
-                    #os.remove(csvFile) #Delete the csv file
                     if writeRemote:
                         tableRename = dBStore.renameTable(databaseName, writeTable)
                     else:
@@ -234,6 +173,7 @@ def main():
                 """
             print("ALL DONE")
             dateCompare = tableDateRef()
+            print(dateCompare)
             dropTables = []  
             for table in localTableList:
                 #print(table)
@@ -242,8 +182,9 @@ def main():
                     if splitName[1] not in dateCompare:
                         dropTables.append(table[0])
 
+            print(dropTables)
             for table in dropTables:
-                dropTable = dBStore.dropTables(databaseName, table)
+                dropTable = dBStore_pg.dropTables(databaseName, table)
             
             # Sleep until upload time
             ####
