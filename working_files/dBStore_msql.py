@@ -23,7 +23,7 @@ def getConfig(userName, pwrd):
     config = {
         'user': userName,
         'password': pwrd,
-        'host':, #Add host name at time of running for a smidge more security
+        'host': 'thesamiapp.cbxifsix5xv0.us-east-2.rds.amazonaws.com', #Add host name at time of running for a smidge more security
         'database': 'sensorDev', #This will need to change to the project specific database, leave for now
         'raise_on_warnings': True
     }
@@ -120,7 +120,7 @@ def checkTableExists(sensorName, config):
 
 
 
-def writeDataTable2Remote(databaseName, userName, pwrd, sensorName, dataTable):
+def writeDataTable2Remote(databaseName, userName, pwrd, sensorName, dataTable, rowCounter):
     #Write the sensor data from the local server to the remote server
     columnKeys = addKeys()
     config = getConfig(userName, pwrd)
@@ -141,12 +141,13 @@ def writeDataTable2Remote(databaseName, userName, pwrd, sensorName, dataTable):
                 sqlData = (dataRow[0], dataRow[1], dataRow[2], dataRow[3], dataRow[4], dataRow[5])
                 cursor.execute(sqlWrite, sqlData)
                 cnx.commit()
+                rowCounter += 1
             
-            return True
+            return True, rowCounter
         
         else:
             print("Could not create new sensor table!")
-            return False
+            return False, 0
     
     except Exception as e:
         print(e)

@@ -6,7 +6,6 @@
 """
 REFERENCES:
 https://opensource.com/article/17/10/set-postgres-database-your-raspberry-pi
-
 """
 
 import psycopg2
@@ -18,10 +17,10 @@ import csv
 def getConfig():
     #Set function for configuration to connect to local table
     config = {
-        'dbname': 'postgres'
+        'dbname': 'postgres',
         'user': 'sensorUser',
         'password': 'sensors',
-        'host': 'localhost',,
+        'host': 'localhost',
         #'raise_on_warnings': True
     }
 

@@ -65,17 +65,23 @@ def getSensorName(tables):
 def getToday():
     #Get today and return string formatted to be similar to sensor table name
     today = datetime.datetime.now()
-    nameStr = "__{}{}{}".format(today.year, today.month, today.day)
+    nameStr = "__{}{}{}".format(today.year, dateFix(today.month), dateFix(today.day))
     return nameStr
+
+def dateFix(dateInst):
+    #This function will format the date instance to ensure that days and months are always 2-digit (i.e. 03 rather than 3)
+    if len(str(dateInst)) == 1:
+        return "0{}".format(str(dateInst))
+    else:
+        return (dateInst)
 
 def tableDateRef():
     #Get the formatted date for the past 30 days to delete old tables
     today = datetime.datetime.now()
     dateList = []
-    counter = 0
     for i in range(30):
-        todayAdj = today + datetime.timedelta(days=-counter)
-        dateStr = "{}{}{}".format(todayAdj.year, todayAdj.month, todayAdj.day)
+        todayAdj = today + datetime.timedelta(days=-i)
+        dateStr = "{}{}{}".format(todayAdj.year, dateFix(todayAdj.month), dateFix(todayAdj.day))
         dateList.append(dateStr)
     return dateList
 
@@ -122,20 +128,19 @@ def main():
 
     while connectCount < 1: #Change to 10
         try:
+            #Set counter and start timer to keep track of how long each process takes
+            startTime = datetime.datetime.now()
+            rowCounter = 0
+
             #Get local table list to compare against remote table list
             localTableList = dBStore_pg.getTableList(databaseName)
 
             #Get today to remove today's table from list
             todayStr = getToday()
 
-            #Remove archive tables from the list
-            #Archive tables have already been added to the remote table
-            
-
             #Get each sensor that is being recorded
             #print(localTableList)
             sensorNameList, dateInfoList = getSensorName(localTableList)
-            print('local table list: ', localTableList)
             for sensor in sensorNameList:
 
                 ####
@@ -147,33 +152,18 @@ def main():
                 for table in localTableList:
                     if str(sensor) in table[0]:
                         if "__archive" not in table[0].lower() and todayStr not in table[0]:
-                            print("sensor Table: ", table[0])
                             sensorTableList.append(table[0])
-                            print("today dat: ", todayStr)
-                            if todayStr in table[0]:
-                                print('coolio')
-
-
-                print("Sensor Table List: ", sensorTableList)
-
-                """
-
 
                 for writeTable in sensorTableList:
-                    dataTable = dBStore_pg.getLocalDataTable(databaseName, writeTable)
-                    writeRemote = dBStore_msql.writeDataTable2Remote(databaseName, mySQLuser, mySQLpwrd, sensor, dataTable)
+                    dataTable = dBStore_pg.getLocalTableData(databaseName, writeTable)
+                    writeRemote, rowCounter = dBStore_msql.writeDataTable2Remote(databaseName, mySQLuser, mySQLpwrd, sensor, dataTable, rowCounter)
                     if writeRemote:
-                        tableRename = dBStore.renameTable(databaseName, writeTable)
+                        tableRename = dBStore_pg.renameTable(databaseName, writeTable)
                     else:
                         print("Could not write to remote server.")
                         print("Table name to remain.")
 
-
-
-                """
-            print("ALL DONE")
             dateCompare = tableDateRef()
-            print(dateCompare)
             dropTables = []  
             for table in localTableList:
                 #print(table)
@@ -182,16 +172,21 @@ def main():
                     if splitName[1] not in dateCompare:
                         dropTables.append(table[0])
 
-            print(dropTables)
             for table in dropTables:
                 dropTable = dBStore_pg.dropTables(databaseName, table)
             
+            endTime = datetime.datetime.now()
+            timeDiff = endTime - startTime
+            #totalSeconds = (timeDiff.hour * 3600) + (timeDiff.minute * 60) + timeDiff.second
+            print("Data tranfer finished.")
+            print("Tranfered {} rows of data in {}.".format(rowCounter, timeDiff))
+
             # Sleep until upload time
             ####
             ####
-            connectCount = 10 #Change to 0
-            #waitTime = getTime(uploadHour)
-            #time.sleep(waitTime)
+            connectCount = 0 #Change to 0
+            waitTime = getTime(uploadHour)
+            time.sleep(waitTime)
             ####
             ####
         
