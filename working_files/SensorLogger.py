@@ -20,6 +20,7 @@ import time
 import datetime
 from argparse import ArgumentParser
 from bluepy import btle  # linux only (no mac)
+import csv
 import dBStore_pg # Script to connect to the local Postgres Database
 from keyStore import addKeys
 import psycopg2
@@ -60,7 +61,6 @@ def main():
                 try:
                     _ = environmental_sensing_service.getCharacteristics()
                     _ = device_info_service.getCharacteristics()
-                    discovered = True
                 except:
                     break
 

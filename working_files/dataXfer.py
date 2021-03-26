@@ -31,7 +31,7 @@ import dBStore_msql #script to connect with the remote MySQL Database
 ################
 #Set upload time
 ################
-uploadHour = 6 #time is in 24 hour format
+uploadHour = 4 #time is in 24 hour format||Set to upload at 4am
 
 if uploadHour < 12:
     print("Upload time set for {} AM".format(uploadHour))
@@ -115,18 +115,18 @@ def main():
         print("Could not find the database on the remote server")
         return 0
     
-    #Each day at specific time (6am):
+    #Each day at specific time (4am):
     # Sleep until upload time
     ####
     ####
-    #waitTime = getTime(uploadHour)
-    #time.sleep(waitTime)
+    waitTime = getTime(uploadHour)
+    time.sleep(waitTime)
     ####
     ####
     
     connectCount = 0
 
-    while connectCount < 1: #Change to 10
+    while connectCount < 10: #Change to 10
         try:
             #Set counter and start timer to keep track of how long each process takes
             startTime = datetime.datetime.now()
