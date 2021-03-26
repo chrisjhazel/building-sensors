@@ -61,6 +61,7 @@ def main():
                 try:
                     _ = environmental_sensing_service.getCharacteristics()
                     _ = device_info_service.getCharacteristics()
+                    discovered = True
                 except:
                     break
 
