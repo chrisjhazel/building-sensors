@@ -1,0 +1,51 @@
+// Install Arduino 1.8.13
+// Reference: https://www.raspberrypi.org/forums/viewtopic.php?t=261430
+#########################
+cd ~
+wget https://downloads.arduino.cc/arduino-1.8.13-linuxarm.tar.xz
+tar -xvf arduino-1.8.13-linuxarm.tar.xz
+cd arduino-1.8.13
+sudo ./install.sh
+#########################
+
+
+// Install Visual Studio Code
+// Reference: https://code.visualstudio.com/docs/setup/raspberry-pi
+#########################
+cd ~
+sudo apt update
+sudo apt install code
+sudo apt update
+sudo apt upgrade code
+# Contact Chris Hazel about connecting Github account
+#########################
+
+
+// Install PostgreSQL
+// Reference: https://opensource.com/article/17/10/set-postgres-database-your-raspberry-pi
+##########################
+cd!
+sudo apt install postgres
+sudo apt install libpq-dev
+sudo apt install postgresql-client
+sudo apt install postgresql-client-common
+sudo apt install pgadmin3
+#########################
+
+
+// Setup Sensor User
+// Reference: https://opensource.com/article/17/10/set-postgres-database-your-raspberry-pi
+##########################
+sudo su postgres
+createuser sensorUser -P --interactive
+#password sensors
+#make superuser for full access
+
+
+// Install required python libraries
+##########################
+sudo python3 -m pip install bluepy
+sudo python3 -m pip install psycopg2
+sudo python3 -m pip install mysql
+sudo python3 -m pip install mysql-connector
+ 

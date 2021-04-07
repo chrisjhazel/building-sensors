@@ -12,12 +12,13 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 import csv
+import pandas as pd
 
 
-def getConfig():
+def getConfig(project='postgres'):
     #Set function for configuration to connect to local table
     config = {
-        'dbname': 'postgres',
+        'dbname': project,
         'user': 'sensorUser',
         'password': 'sensors',
         'host': 'localhost',
@@ -64,7 +65,7 @@ def getAllDB():
         con = psycopg2.connect(**config)
         cursor = con.cursor()
 
-        sqlGetDBList = ("SELECT datname FROM pg_catalog.pgdatabase;")
+        sqlGetDBList = ("SELECT datname FROM pg_catalog.pg_database;")
         cursor.execute(sqlGetDBList)
 
         dbList = cursor.fetchall()
@@ -78,7 +79,7 @@ def getAllDB():
 
 def createNewProject(projectName):
     # Create a new project database
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         #Connect to Postgres Database system
         con = psycopg2.connect(**config)
@@ -99,9 +100,27 @@ def createNewProject(projectName):
         print("Failed to create new project database!")
         return False
 
+def getAllTables(projectName):
+    # return all of the tables within a specific database
+    config = getConfig(project=projectName)
+    try:
+        con = psycopg2.connect(**config)
+        cursor = con.cursor()
+
+        sqlGetTableList = ("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
+        cursor.execute(sqlGetTableList)
+
+        tableList = cursor.fetchall()
+        return tableList
+    
+    except Exception as e:
+        print(e)
+        print("Failed to receive the table list")
+        return 0
+
 def testTableExists(projectName, sensorTableName, columnKeys):
     # Test if the sensor table exists within the project database
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -128,7 +147,7 @@ def testTableExists(projectName, sensorTableName, columnKeys):
 
 def getTableList(projectName):
     # Test if the sensor table exists within the project database
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -150,7 +169,7 @@ def getTableList(projectName):
 
 def createNewTable(projectName, sensorTableName, columnKeys):
     # Create a table
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -169,7 +188,7 @@ def createNewTable(projectName, sensorTableName, columnKeys):
 
 def insertDataRow(dataRow, projectName, sensorTableName, columnKeys):
     # Write the datarow to the SQL database
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -196,7 +215,7 @@ def insertDataRow(dataRow, projectName, sensorTableName, columnKeys):
 
 def getLocalTableData(projectName, tableName):
     #Read the contents of a table and write to a CSV file on the local drive
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -216,7 +235,7 @@ def getLocalTableData(projectName, tableName):
 
 def renameTable(projectName, tableName):
     #Rename the table to add "__archive"
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -235,7 +254,7 @@ def renameTable(projectName, tableName):
 
 def unrenameTable(projectName, tableName):
     #This function is not current used
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -257,7 +276,7 @@ def unrenameTable(projectName, tableName):
 
 def dropTables(projectName, tableName):
     #Drop the old tables from the local database
-    config = getConfig()
+    config = getConfig(project=projectName)
     try:
         con = psycopg2.connect(**config)
         cursor = con.cursor()
@@ -273,3 +292,41 @@ def dropTables(projectName, tableName):
         print(e)
         print("Could not drop local table")
         return e
+
+
+#########################
+# Data Science Functions
+#########################
+def createDataFrame(projectName, sensorName):
+    #Create single dataframe from postgreSQL 
+    config = getConfig(project=projectName)
+    try:
+        con = psycopg2.connect(**config)
+        cursor = con.cursor()
+        con.autocommit = True
+
+        #Get all tables with sensor name
+        tableListAll = getAllTables(projectName)
+        tableListSel = []
+        for table in tableListAll:
+            if sensorName in table[0]:
+                tableListSel.append(table[0])
+        
+        df = pd.DataFrame()
+
+        for tableName in tableListSel:
+            print(tableName)
+            dfSub = pd.read_sql_query("SELECT * FROM {}".format(tableName), con)
+            
+            print(dfSub)
+
+            df = df.append(dfSub, ignore_index=True)
+        df = df.assign(sensor_name=str(sensorName))
+        df = df.sort_values(by=['time'])
+
+        return df
+    
+    except Exception as e:
+        print(e)
+        print("Could not return data table")
+        return 0

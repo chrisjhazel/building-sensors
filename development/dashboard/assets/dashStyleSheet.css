@@ -1,0 +1,10 @@
+/*style sheet for dash app*/
+#navbar .navbarNew {
+    width: 50%;
+    background-color: #4792C5;
+}
+
+#sidebar .sidebar {
+    width: 17%;
+    background-color: #4792C5;
+}
