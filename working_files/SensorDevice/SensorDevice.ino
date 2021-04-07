@@ -24,7 +24,7 @@ BLEFloatCharacteristic tempCal("e8be61a0-44e6-4220-bec7-7fa7f0f7be8f", BLERead |
 // Set update time and calibration
 // SET UPDATE FREQUENCY HERE
 //
-const int UPDATE_FREQUENCY = 10000; //Update every 10 seconds
+const int UPDATE_FREQUENCY = 60000; //Update every 60 seconds
 //
 //
 const float TEMP_CALIBRATION = -6.5; //temperature calibration, may need to set periodically
