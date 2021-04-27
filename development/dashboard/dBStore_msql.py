@@ -7,6 +7,7 @@ import mysql.connector
 from mysql.connector import errorcode
 from keyStore import addKeys
 import csv
+import pandas as pd
 
 import getpass
 
@@ -30,7 +31,47 @@ def getConfig(userName, pwrd):
 
     return config
 
+def getAllDB(userName, pwrd):
+    config = getConfig(userName, pwrd)
 
+    try:
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+
+        sqlGetDBList = "show databases"
+        cursor.execute(sqlGetDBList)
+
+        dbList = cursor.fetchall()
+
+        ###TEMPORARY TO RETURN DATABASE NAME
+        return [config["database"]]
+
+        
+        #return dbList
+    
+    except Exception as e:
+        print(e)
+        print("Failed to receive databases")
+        return 0
+
+def getAllTables(userName, pwrd):
+    config = getConfig(userName, pwrd)
+
+    try:
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+
+        sqlGetTableList = "show tables"
+        cursor.execute(sqlGetTableList)
+
+        tableList = cursor.fetchall()
+
+        return tableList
+    
+    except Exception as e:
+        print(e)
+        print("Failed to receive tables")
+        return 0
 
 def checkDatabaseExists(userName, pwrd):
     #Confirm that the project database exists in the remote server
@@ -153,3 +194,44 @@ def writeDataTable2Remote(databaseName, userName, pwrd, sensorName, dataTable, r
         print(e)
         print("Could not record data to the remote server")
         return False
+
+def getRemoteTableData(userName, pwrd, tableName):
+    #Read the contents of a table
+    config = getConfig(userName, pwrd)
+
+    try:
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+
+        readTable = "SELECT * FROM " + (tableName)
+        cursor.execute(readTable)
+
+        tableInfo = cursor.fetchall()
+
+        return tableInfo
+    
+    except Exception as e:
+        print(e)
+        print("Could not read data from table!")
+        return e
+
+
+def createDataFrame(userName, pwrd, tableName):
+    #Create a single dataframe from MySQL
+    config = getConfig(userName, pwrd)
+
+    try:
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+
+        df = pd.read_sql_query("SELECT * FROM " + (tableName), cnx)
+
+        df = df.assign(sensor_name=str(tableName))
+        df = df.sort_values(by=['time'])
+
+        return df
+
+    except Exception as e:
+        print(e)
+        print("Could not read data from table!")
+        return e
