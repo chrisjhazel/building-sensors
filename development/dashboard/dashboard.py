@@ -26,12 +26,12 @@ from remote_connect import remote_connect
 ## NOTES AND ADDED FUNCTONS
 ###########################
 """
--Add multiple comfort categories (stack temperature and humidity)
+-Add multiple comfort categories (stack temperature and humidity) || DONE
 -Add static metrics like average temp, humidity, sound (weighted avg to give less weight to outliers?), time within comfort and non-comfort ranges, etc
 -Time selector to specify period (buttons to quick select hour, day, week, month) || DONE
 -Outdoor comfort metrics (pull from OpenWeatherMaps)
 -Local and remote data server connections || DONE
--Show range values (temp, humidity) to show difference between max and min (total and something to remove outliers)
+-Show range values (temp, humidity) to show difference between max and min (total and something to remove outliers) || DONE
 -Smooth graph lines || DONE
 -Circular data graph (24h clock of data)
 -Add accordian effect to cards
