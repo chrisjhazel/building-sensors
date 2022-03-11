@@ -17,9 +17,11 @@ BLEUnsignedIntCharacteristic pressureCharacteristic("2A6D", BLERead | BLENotify 
 BLEIntCharacteristic lightCharacteristic("2B03", BLERead | BLENotify | BLEBroadcast); 
 BLEIntCharacteristic soundCharacteristic("27C3", BLERead | BLENotify | BLEBroadcast); 
 
-BLEService deviceInfo("a4ce5b72-d26c-436e-a451-fdcc16acd437");
-//BLECharCharacteristic sensorName("2A00", BLERead | BLENotify | BLEBroadcast); //Set sensor specific name to each board
-//BLECharCharacteristic sensorID("ec1d31fa-6dd7-45da-8dbe-5a7a727ae98a", BLERead | BLENotify | BLEBroadcast); //Set sensor specific ID for each board. Use ble address
+BLEService deviceInfo("180A");
+BLECharCharacteristic sensorName("2A00", BLERead | BLENotify | BLEBroadcast); //Set sensor specific name to each board
+BLECharCharacteristic sensorID("2A03", BLERead | BLENotify | BLEBroadcast); //Set sensor specific ID for each board. Use ble address
+
+BLEService sensorInfo("a4ce5b72-d26c-436e-a451-fdcc16acd437");
 BLEIntCharacteristic updateFreq("e74ca207-cfbc-4cbd-8339-e0e55144d648", BLERead | BLENotify | BLEBroadcast);
 BLEFloatCharacteristic tempCal("e8be61a0-44e6-4220-bec7-7fa7f0f7be8f", BLERead | BLENotify | BLEBroadcast); 
 
@@ -109,38 +111,42 @@ void setup() {
   BLE.setDeviceName("1201Dellwood_Sensor1"); 
 
   //Set up BLE
-  BLE.setAdvertisedService(sensorService);
+  BLE.setAdvertisedService(deviceInfo);
+  deviceInfo.addCharacteristic(sensorName);
+  deviceInfo.addCharacteristic(sensorID);
+
+  //BLE.setAdvertisedService(sensorInfo);
+  deviceInfo.addCharacteristic(updateFreq);
+  deviceInfo.addCharacteristic(tempCal);
+
+  //BLE.setAdvertisedService(sensorService);
   sensorService.addCharacteristic(tempCharacteristic);
   sensorService.addCharacteristic(humidCharacteristic);
   sensorService.addCharacteristic(pressureCharacteristic);
   sensorService.addCharacteristic(lightCharacteristic);
   sensorService.addCharacteristic(soundCharacteristic);
   
-  BLE.setAdvertisedService(deviceInfo);
-  deviceInfo.addCharacteristic(updateFreq);
-  deviceInfo.addCharacteristic(tempCal);
-  deviceInfo.addCharacteristic(sensorName);
-  deviceInfo.addCharacteristic(sensorID);
-
+  
   BLE.addService(sensorService);
   BLE.addService(deviceInfo);
+  BLE.addService(sensorInfo);
   BLE.advertise();
   BLE.setConnectable(true);
 
   //Write the name and ID of the sensor
-  //sensorName.writeValue(device_name);
-  //sensorID.writeValue(ardAddress);
+  sensorName.writeValue(device_name);
+  sensorID.writeValue(ardAddress);
 
-  tempCharacteristic.broadcast();
-  humidCharacteristic.broadcast();
-  pressureCharacteristic.broadcast();
-  lightCharacteristic.broadcast();
-  soundCharacteristic.broadcast();
+  //tempCharacteristic.broadcast();
+  //humidCharacteristic.broadcast();
+  //pressureCharacteristic.broadcast();
+  //lightCharacteristic.broadcast();
+  //soundCharacteristic.broadcast();
   
-  updateFreq.broadcast();
-  tempCal.broadcast();
-  //sensorName.broadcast();
-  //sensorID.broadcast();
+  //updateFreq.broadcast();
+  //tempCal.broadcast();
+  sensorName.broadcast();
+  sensorID.broadcast();
 
   updateFreq.writeValue(UPDATE_FREQUENCY);
   Serial.print("The update frequency is: ");
