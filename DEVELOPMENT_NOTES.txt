@@ -6,3 +6,4 @@ Update table naming to include "0" i.e. sensor1__20210305 rather than sensor1__2
 Set config function in dBStore similar to dBStore_msql
 
 
+Named BLE UUIDs: https://btprodspecificationrefs.blob.core.windows.net/assigned-values/16-bit%20UUID%20Numbers%20Document.pdf

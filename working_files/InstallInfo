@@ -44,6 +44,7 @@ createuser sensorUser -P --interactive
 
 // Install required python libraries
 ##########################
+sudo apt-get install python-pip libglib2.0-dev
 sudo python3 -m pip install bluepy
 sudo python3 -m pip install psycopg2
 sudo python3 -m pip install mysql
